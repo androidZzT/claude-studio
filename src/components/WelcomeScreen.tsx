@@ -43,7 +43,7 @@ export function WelcomeScreen({
           />
         </div>
         <h1 className="mb-2 text-3xl font-bold tracking-tight text-accent">
-          cc-studio
+          claude-studio
         </h1>
         <p className="mb-10 text-sm text-muted">
           Visual Orchestration for Claude Code Agent Teams

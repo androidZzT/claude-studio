@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'cc-studio',
+  title: 'claude-studio',
   description: 'Visual Orchestration for Claude Code Agent Teams. Manage agents, workflows, skills & rules with a drag-and-drop DAG editor.',
-  keywords: ['claude code', 'agent orchestration', 'workflow editor', 'visual editor', 'cc-studio'],
+  keywords: ['claude code', 'agent orchestration', 'workflow editor', 'visual editor', 'claude-studio'],
   icons: {
     icon: '/icon.svg',
   },

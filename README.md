@@ -1,10 +1,10 @@
-# cc-studio
+# claude-studio
 
 Visual orchestration platform for Claude Code Agent Teams.
 
 Design, manage, and execute multi-agent workflows through an intuitive DAG editor. Create agents, skills, and workflows — then run them with built-in execution engine.
 
-![cc-studio screenshot](docs/screenshot.png)
+![claude-studio screenshot](docs/screenshot.png)
 
 ## Features
 
@@ -22,7 +22,7 @@ Design, manage, and execute multi-agent workflows through an intuitive DAG edito
 ## Quick Start
 
 ```bash
-cd cc-studio
+cd claude-studio
 npm install
 npm run dev -- -p 3100
 # Open http://localhost:3100
@@ -69,7 +69,7 @@ MIT
 <details>
 <summary>🇨🇳 中文说明</summary>
 
-# cc-studio
+# claude-studio
 
 Claude Code Agent Teams 的可视化编排平台。
 
@@ -91,7 +91,7 @@ Claude Code Agent Teams 的可视化编排平台。
 ## 快速开始
 
 ```bash
-cd cc-studio
+cd claude-studio
 npm install
 npm run dev -- -p 3100
 # 打开 http://localhost:3100

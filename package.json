@@ -1,5 +1,5 @@
 {
-  "name": "cc-studio",
+  "name": "claude-studio",
   "version": "0.1.0",
   "private": true,
   "description": "Visual orchestration platform for Claude Code — manage agents, workflows, skills & rules in ~/.claude/",

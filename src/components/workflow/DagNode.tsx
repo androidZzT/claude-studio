@@ -122,7 +122,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
     if (skillRaw) {
       try {
         const { name } = JSON.parse(skillRaw) as { name: string };
-        window.dispatchEvent(new CustomEvent('cc-studio:bind-skill', {
+        window.dispatchEvent(new CustomEvent('claude-studio:bind-skill', {
           detail: { nodeId: data.nodeId, skillName: name },
         }));
       } catch { /* ignore */ }
@@ -133,7 +133,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
     if (mcpRaw) {
       try {
         const { name } = JSON.parse(mcpRaw) as { name: string };
-        window.dispatchEvent(new CustomEvent('cc-studio:bind-mcp', {
+        window.dispatchEvent(new CustomEvent('claude-studio:bind-mcp', {
           detail: { nodeId: data.nodeId, mcpName: name },
         }));
       } catch { /* ignore */ }

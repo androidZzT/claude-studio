@@ -6,13 +6,13 @@ import { getSettingsPath } from '@/lib/resource-paths';
 import type { ResourceType } from '@/types/resources';
 
 // Prevent unhandled errors from crashing the process
-if (typeof process !== 'undefined' && !(process as NodeJS.Process & { __ccStudioGuarded?: boolean }).__ccStudioGuarded) {
-  (process as NodeJS.Process & { __ccStudioGuarded?: boolean }).__ccStudioGuarded = true;
+if (typeof process !== 'undefined' && !(process as NodeJS.Process & { __claudeStudioGuarded?: boolean }).__claudeStudioGuarded) {
+  (process as NodeJS.Process & { __claudeStudioGuarded?: boolean }).__claudeStudioGuarded = true;
   process.on('uncaughtException', (err) => {
-    console.error('[cc-studio] uncaughtException (kept alive):', err);
+    console.error('[claude-studio] uncaughtException (kept alive):', err);
   });
   process.on('unhandledRejection', (reason) => {
-    console.error('[cc-studio] unhandledRejection (kept alive):', reason);
+    console.error('[claude-studio] unhandledRejection (kept alive):', reason);
   });
 }
 
@@ -56,7 +56,7 @@ function getOrCreateWatcher(): FSWatcher {
   });
 
   w.on('error', (err) => {
-    console.error('[cc-studio] chokidar error:', err);
+    console.error('[claude-studio] chokidar error:', err);
   });
 
   w.on('all', (event: string, filePath: string) => {

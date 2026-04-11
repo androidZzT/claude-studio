@@ -226,7 +226,7 @@ export function Studio() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-border px-4">
-        <h1 className="text-sm font-semibold tracking-tight">cc-studio</h1>
+        <h1 className="text-sm font-semibold tracking-tight">claude-studio</h1>
         <button
           onClick={() => setSettingsOpen(true)}
           className="rounded px-2 py-1 text-xs text-muted hover:bg-surface-hover hover:text-foreground"

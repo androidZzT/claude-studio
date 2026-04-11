@@ -339,11 +339,11 @@ function WorkflowCanvasInner({
       );
       setDirty(true);
     }
-    window.addEventListener('cc-studio:bind-skill', handleBindSkill);
-    window.addEventListener('cc-studio:bind-mcp', handleBindMcp);
+    window.addEventListener('claude-studio:bind-skill', handleBindSkill);
+    window.addEventListener('claude-studio:bind-mcp', handleBindMcp);
     return () => {
-      window.removeEventListener('cc-studio:bind-skill', handleBindSkill);
-      window.removeEventListener('cc-studio:bind-mcp', handleBindMcp);
+      window.removeEventListener('claude-studio:bind-skill', handleBindSkill);
+      window.removeEventListener('claude-studio:bind-mcp', handleBindMcp);
     };
   }, [setNodes]);
 

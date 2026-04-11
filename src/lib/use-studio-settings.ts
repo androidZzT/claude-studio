@@ -14,7 +14,7 @@ export interface StudioSettings {
   readonly animationSpeed: 'fast' | 'normal' | 'slow';
 }
 
-const STORAGE_KEY = 'cc-studio-settings';
+const STORAGE_KEY = 'claude-studio-settings';
 
 const DEFAULT_SETTINGS: StudioSettings = {
   language: 'en',

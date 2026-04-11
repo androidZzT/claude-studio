@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Project } from '@/types/resources';
 
-const STORAGE_KEY = 'cc-studio:activeProjectId';
-const RECENT_KEY = 'cc-studio:recentProjects';
+const STORAGE_KEY = 'claude-studio:activeProjectId';
+const RECENT_KEY = 'claude-studio:recentProjects';
 const MAX_RECENT = 10;
 
 export interface RecentProject {
