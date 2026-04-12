@@ -24,7 +24,12 @@
   },
   "files": [
     "bin/",
-    ".next/",
+    ".next/server/",
+    ".next/static/",
+    ".next/types/",
+    ".next/*.json",
+    ".next/*.js",
+    ".next/package.json",
     "public/",
     "src/",
     "docs/",

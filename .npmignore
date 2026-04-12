@@ -1,0 +1,22 @@
+# Dev / build cache — never ship these
+.next/dev/
+.next/cache/
+.next/build/
+.next/turbopack/
+.next/diagnostics/
+.next/trace
+.next/trace-build
+
+# Dev dependencies artifacts
+node_modules/
+coverage/
+
+# Editor / OS
+.DS_Store
+*.pem
+.env*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
