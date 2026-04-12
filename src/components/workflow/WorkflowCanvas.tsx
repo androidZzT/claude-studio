@@ -88,6 +88,7 @@ interface WorkflowCanvasProps {
   readonly onCancelRun?: () => void;
   readonly showCanvasGrid?: boolean;
   readonly showMinimap?: boolean;
+  readonly animationSpeed?: 'fast' | 'normal' | 'slow';
 }
 
 export type { NodeUpdateRequest, NodeDeleteRequest };
@@ -110,6 +111,7 @@ function WorkflowCanvasInner({
   onCancelRun,
   showCanvasGrid = true,
   showMinimap = true,
+  animationSpeed = 'normal',
 }: WorkflowCanvasProps) {
   const reactFlowInstance = useReactFlow();
   const [saving, setSaving] = useState(false);
@@ -211,9 +213,19 @@ function WorkflowCanvasInner({
     setDirty(true);
   }, [nodeDeleteRequest, setNodes, setEdges, nodes, edges, undoRedo]);
 
-  // Notify parent of node/edge changes
-  useEffect(() => { onNodesChangeExternal?.(nodes); }, [nodes, onNodesChangeExternal]);
-  useEffect(() => { onEdgesChangeExternal?.(edges); }, [edges, onEdgesChangeExternal]);
+  // Notify parent of node/edge changes (debounced to avoid excessive re-renders during drags)
+  const nodesChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const edgesChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (nodesChangeTimerRef.current) clearTimeout(nodesChangeTimerRef.current);
+    nodesChangeTimerRef.current = setTimeout(() => { onNodesChangeExternal?.(nodes); }, 50);
+    return () => { if (nodesChangeTimerRef.current) clearTimeout(nodesChangeTimerRef.current); };
+  }, [nodes, onNodesChangeExternal]);
+  useEffect(() => {
+    if (edgesChangeTimerRef.current) clearTimeout(edgesChangeTimerRef.current);
+    edgesChangeTimerRef.current = setTimeout(() => { onEdgesChangeExternal?.(edges); }, 50);
+    return () => { if (edgesChangeTimerRef.current) clearTimeout(edgesChangeTimerRef.current); };
+  }, [edges, onEdgesChangeExternal]);
 
   const handleNodesChange: typeof onNodesChange = useCallback(
     (changes) => {
@@ -223,21 +235,21 @@ function WorkflowCanvasInner({
       });
       if (safeChanges.length === 0) return;
       const hasRemoval = safeChanges.some((c) => c.type === 'remove');
-      if (hasRemoval) undoRedo.pushSnapshot(nodes, edges);
+      if (hasRemoval) undoRedoRef.current.pushSnapshot(nodesRef.current, edgesRef.current);
       onNodesChange(safeChanges);
       setDirty(true);
     },
-    [onNodesChange, nodes, edges, undoRedo]
+    [onNodesChange]
   );
 
   const handleEdgesChange: typeof onEdgesChange = useCallback(
     (changes) => {
       const hasRemoval = changes.some((c) => c.type === 'remove');
-      if (hasRemoval) undoRedo.pushSnapshot(nodes, edges);
+      if (hasRemoval) undoRedoRef.current.pushSnapshot(nodesRef.current, edgesRef.current);
       onEdgesChange(changes);
       setDirty(true);
     },
-    [onEdgesChange, nodes, edges, undoRedo]
+    [onEdgesChange]
   );
 
   const onConnect: OnConnect = useCallback(
@@ -396,7 +408,7 @@ function WorkflowCanvasInner({
   useEffect(() => { handleSaveRef.current = handleSave; }, [handleSave]);
 
   // Preview mode
-  const preview = usePreview(nodes, edges);
+  const preview = usePreview(nodes, edges, animationSpeed);
   useEffect(() => { previewingRef.current = preview.previewing; }, [preview.previewing]);
 
   const handleAutoLayout = useCallback(() => {

@@ -2,37 +2,15 @@ import type { Node, Edge } from '@xyflow/react';
 import type { DagNodeData } from './workflow-to-flow';
 
 /**
- * Groups node IDs into topological levels based on dispatch edges.
- * Nodes at level 0 have no dispatch dependencies.
- * Nodes at level N depend on at least one node at level N-1 (or lower).
- *
- * Returns an array of arrays, where each inner array contains node IDs
- * at that level. Parallel nodes share the same level.
+ * Core topology algorithm: computes topological levels from a dependency map.
+ * Nodes at level 0 have no dependencies. Nodes at level N depend on at least
+ * one node at level N-1 (or lower). Shared by React Flow canvas, execution
+ * engine, and auto-layout.
  */
-export function computeTopologyLevels(
-  nodes: readonly Node<DagNodeData>[],
-  edges: readonly Edge[]
+export function computeLevelsFromDepsMap(
+  nodeIds: ReadonlySet<string>,
+  depsMap: ReadonlyMap<string, readonly string[]>,
 ): readonly (readonly string[])[] {
-  // Build adjacency: parent -> children (dispatch and roundtrip edges carry execution dependency)
-  const dispatchEdges = edges.filter(
-    (e) => {
-      const type = e.data?.edgeType ?? 'dispatch';
-      return type === 'dispatch' || type === 'roundtrip';
-    }
-  );
-
-  // Build dependency map: child -> parents
-  const depsMap = new Map<string, readonly string[]>();
-  const nodeIds = new Set(nodes.map((n) => n.id));
-
-  for (const id of nodeIds) {
-    const parents = dispatchEdges
-      .filter((e) => e.target === id && nodeIds.has(e.source))
-      .map((e) => e.source);
-    depsMap.set(id, parents);
-  }
-
-  // Compute level for each node
   const levelCache = new Map<string, number>();
 
   function getLevel(id: string): number {
@@ -69,6 +47,38 @@ export function computeTopologyLevels(
   }
 
   return levels;
+}
+
+/**
+ * Groups node IDs into topological levels based on dispatch edges.
+ * Nodes at level 0 have no dispatch dependencies.
+ * Nodes at level N depend on at least one node at level N-1 (or lower).
+ *
+ * Returns an array of arrays, where each inner array contains node IDs
+ * at that level. Parallel nodes share the same level.
+ */
+export function computeTopologyLevels(
+  nodes: readonly Node<DagNodeData>[],
+  edges: readonly Edge[]
+): readonly (readonly string[])[] {
+  const dispatchEdges = edges.filter(
+    (e) => {
+      const type = e.data?.edgeType ?? 'dispatch';
+      return type === 'dispatch' || type === 'roundtrip';
+    }
+  );
+
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  const depsMap = new Map<string, readonly string[]>();
+
+  for (const id of nodeIds) {
+    const parents = dispatchEdges
+      .filter((e) => e.target === id && nodeIds.has(e.source))
+      .map((e) => e.source);
+    depsMap.set(id, parents);
+  }
+
+  return computeLevelsFromDepsMap(nodeIds, depsMap);
 }
 
 /**

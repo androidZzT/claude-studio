@@ -15,7 +15,13 @@ export type ExecutionNodeStatus =
   | 'waiting-checkpoint'
   | 'cancelled';
 
-export interface DagNodeData {
+/**
+ * Data carried by each DAG node. Extends Record<string, unknown> to satisfy
+ * React Flow's Node<T> constraint. All known fields are explicitly typed;
+ * the index signature is required by the framework but should not be used
+ * for arbitrary property access — add new fields here instead.
+ */
+export interface DagNodeData extends Record<string, unknown> {
   readonly label: string;
   readonly agent: string;
   readonly task: string;
@@ -25,7 +31,9 @@ export interface DagNodeData {
   readonly mcpServers: readonly string[];
   readonly previewState?: PreviewNodeState | null;
   readonly executionStatus?: ExecutionNodeStatus | null;
-  [key: string]: unknown;
+  readonly inCount?: number;
+  readonly outCount?: number;
+  readonly text?: string;
 }
 
 export const DISPATCH_EDGE_STYLE = {

@@ -13,12 +13,15 @@ const CLAUDE_PROJECTS_META_DIR = path.join(os.homedir(), '.claude', 'projects');
  * Known parent directories where Claude Code projects live.
  * We scan these for subdirectories containing CLAUDE.md instead of
  * trying to reverse-engineer the encoded directory names.
+ * Override with CC_STUDIO_SEARCH_DIRS env var (colon-separated paths).
  */
-const SEARCH_DIRS = [
-  path.join(os.homedir(), 'Claude'),
-  path.join(os.homedir(), 'Github'),
-  path.join(os.homedir(), 'Workspace'),
-];
+const SEARCH_DIRS: readonly string[] = process.env.CC_STUDIO_SEARCH_DIRS
+  ? process.env.CC_STUDIO_SEARCH_DIRS.split(':').map((d) => d.trim()).filter(Boolean)
+  : [
+      path.join(os.homedir(), 'Claude'),
+      path.join(os.homedir(), 'Github'),
+      path.join(os.homedir(), 'Workspace'),
+    ];
 
 async function readAgentFile(filePath: string): Promise<Resource | null> {
   try {

@@ -21,9 +21,17 @@ const INITIAL_STATE: PreviewState = {
   phase: 'idle',
 };
 
-const NORMAL_DELAY_MS = 800;
-const CHECKPOINT_DELAY_MS = 1500;
-const FINISH_GLOW_MS = 1000;
+type AnimationSpeed = 'fast' | 'normal' | 'slow';
+
+const SPEED_MULTIPLIER: Record<AnimationSpeed, number> = {
+  fast: 0.5,
+  normal: 1,
+  slow: 2,
+};
+
+const BASE_NORMAL_DELAY_MS = 800;
+const BASE_CHECKPOINT_DELAY_MS = 1500;
+const BASE_FINISH_GLOW_MS = 1000;
 
 interface UsePreviewResult {
   readonly previewing: boolean;
@@ -38,7 +46,8 @@ interface UsePreviewResult {
 
 export function usePreview(
   nodes: readonly Node<DagNodeData>[],
-  edges: readonly Edge[]
+  edges: readonly Edge[],
+  animationSpeed: AnimationSpeed = 'normal',
 ): UsePreviewResult {
   const [state, setState] = useState<PreviewState>(INITIAL_STATE);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,22 +65,26 @@ export function usePreview(
   }, [clearTimer]);
 
   // Advance to next step
+  const speedRef = useRef(animationSpeed);
+  useEffect(() => { speedRef.current = animationSpeed; }, [animationSpeed]);
+
   const scheduleNext = useCallback(
     (levels: readonly (readonly string[])[], step: number, allNodes: readonly Node<DagNodeData>[]) => {
       const nextStep = step + 1;
+      const multiplier = SPEED_MULTIPLIER[speedRef.current];
 
       if (nextStep >= levels.length) {
         // All levels done - show finishing glow
         setState((prev) => ({ ...prev, currentStep: nextStep, phase: 'finishing' }));
         timerRef.current = setTimeout(() => {
           setState(INITIAL_STATE);
-        }, FINISH_GLOW_MS);
+        }, BASE_FINISH_GLOW_MS * multiplier);
         return;
       }
 
       const levelNodeIds = levels[nextStep];
       const isCheckpoint = levelHasCheckpoint(levelNodeIds, allNodes);
-      const delay = isCheckpoint ? CHECKPOINT_DELAY_MS : NORMAL_DELAY_MS;
+      const delay = (isCheckpoint ? BASE_CHECKPOINT_DELAY_MS : BASE_NORMAL_DELAY_MS) * multiplier;
 
       setState((prev) => ({ ...prev, currentStep: nextStep }));
 
@@ -100,7 +113,8 @@ export function usePreview(
 
     const firstLevelNodes = levels[0];
     const isCheckpoint = levelHasCheckpoint(firstLevelNodes, nodes);
-    const delay = isCheckpoint ? CHECKPOINT_DELAY_MS : NORMAL_DELAY_MS;
+    const multiplier = SPEED_MULTIPLIER[animationSpeed];
+    const delay = (isCheckpoint ? BASE_CHECKPOINT_DELAY_MS : BASE_NORMAL_DELAY_MS) * multiplier;
 
     timerRef.current = setTimeout(() => {
       scheduleNext(levels, 0, nodes);

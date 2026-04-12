@@ -3,7 +3,6 @@
 import { useCallback, useRef } from 'react';
 import { Play, Square, Download, Upload, LayoutGrid, Save, Rocket, Wand2 } from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
-import yaml from 'js-yaml';
 import { flowToWorkflow, workflowToYaml } from '@/lib/flow-to-workflow';
 import { validateWorkflow } from '@/lib/workflow-validation';
 import { workflowToFlow } from '@/lib/workflow-to-flow';
@@ -94,9 +93,10 @@ export function WorkflowToolbar({
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const text = reader.result as string;
         try {
+          const yaml = await import('js-yaml');
           const parsed = yaml.load(text) as unknown;
           const validation = validateWorkflow(parsed);
           if (!validation.valid) {

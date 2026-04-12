@@ -1,14 +1,14 @@
 import type { Node, Edge } from '@xyflow/react';
 import type { DagNodeData } from './workflow-to-flow';
 import { buildSyncMapFromEdges, orderNodesBySyncAffinity } from './workflow-to-flow';
+import { computeLevelsFromDepsMap } from './topology';
 
 const HORIZONTAL_SPACING = 320;
 const VERTICAL_SPACING = 200;
 
 /**
- * Computes dependency levels from edges. Nodes with no incoming
- * dispatch/roundtrip edges are at level 0. Each node's level is
- * max(parent levels) + 1.
+ * Computes dependency levels from edges using shared topology algorithm.
+ * Returns a Map from nodeId to level number.
  */
 function computeLevelsFromEdges(
   nodes: readonly Node<DagNodeData>[],
@@ -28,25 +28,14 @@ function computeLevelsFromEdges(
     depsMap.set(node.id, deps);
   }
 
+  // Use shared topology and convert level arrays back to Map
+  const levelArrays = computeLevelsFromDepsMap(nodeIds, depsMap);
   const levels = new Map<string, number>();
-
-  function getLevel(id: string): number {
-    if (levels.has(id)) return levels.get(id)!;
-    const deps = depsMap.get(id) ?? [];
-    if (deps.length === 0) {
-      levels.set(id, 0);
-      return 0;
+  for (let i = 0; i < levelArrays.length; i++) {
+    for (const id of levelArrays[i]) {
+      levels.set(id, i);
     }
-    const maxParent = Math.max(...deps.map(getLevel));
-    const level = maxParent + 1;
-    levels.set(id, level);
-    return level;
   }
-
-  for (const node of nodes) {
-    getLevel(node.id);
-  }
-
   return levels;
 }
 

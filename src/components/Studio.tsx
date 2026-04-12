@@ -287,6 +287,7 @@ export function Studio() {
               onCancelRun={handleCancelRun}
               showCanvasGrid={studioSettings.settings.showCanvasGrid}
               showMinimap={studioSettings.settings.showMinimap}
+              animationSpeed={studioSettings.settings.animationSpeed}
             />
           )}
         </section>

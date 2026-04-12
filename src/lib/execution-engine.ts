@@ -8,6 +8,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { computeLevelsFromDepsMap } from './topology';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -80,8 +81,8 @@ interface ExecutionOptions {
 function computeLevelsFromWorkflow(
   nodes: readonly WorkflowNodeInput[]
 ): readonly (readonly string[])[] {
-  const depsMap = new Map<string, readonly string[]>();
   const nodeIds = new Set(nodes.map((n) => n.id));
+  const depsMap = new Map<string, readonly string[]>();
 
   for (const node of nodes) {
     const deps = [
@@ -91,41 +92,7 @@ function computeLevelsFromWorkflow(
     depsMap.set(node.id, deps);
   }
 
-  const levelCache = new Map<string, number>();
-
-  function getLevel(id: string): number {
-    const cached = levelCache.get(id);
-    if (cached !== undefined) return cached;
-
-    const deps = depsMap.get(id) ?? [];
-    if (deps.length === 0) {
-      levelCache.set(id, 0);
-      return 0;
-    }
-
-    const maxParent = Math.max(...deps.map(getLevel));
-    const level = maxParent + 1;
-    levelCache.set(id, level);
-    return level;
-  }
-
-  for (const id of nodeIds) {
-    getLevel(id);
-  }
-
-  const maxLevel = nodeIds.size > 0
-    ? Math.max(...Array.from(nodeIds).map((id) => levelCache.get(id) ?? 0))
-    : -1;
-
-  const levels: string[][] = [];
-  for (let i = 0; i <= maxLevel; i++) {
-    const nodesAtLevel = Array.from(nodeIds).filter(
-      (id) => (levelCache.get(id) ?? 0) === i
-    );
-    levels.push(nodesAtLevel);
-  }
-
-  return levels;
+  return computeLevelsFromDepsMap(nodeIds, depsMap);
 }
 
 // ─── Execution runner ──────────────────────────────────────────────────────
@@ -394,6 +361,9 @@ export class ExecutionRunner extends EventEmitter {
 }
 
 // ─── Execution store (in-memory for MVP) ───────────────────────────────────
+// NOTE: Module-level mutable state works in single-process dev server but will
+// NOT persist across serverless function invocations. For production deployments
+// on serverless platforms (Vercel, AWS Lambda), replace with Redis or a database.
 
 const executions = new Map<string, ExecutionRunner>();
 

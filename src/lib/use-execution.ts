@@ -69,7 +69,11 @@ export function useExecution(): UseExecutionResult {
         const execEvent = data as ExecutionEvent;
 
         if (execEvent.message) {
-          setLogs((prev) => [...prev, `[${execEvent.timestamp}] ${execEvent.message}`]);
+          const MAX_LOG_ENTRIES = 500;
+          setLogs((prev) => {
+            const next = [...prev, `[${execEvent.timestamp}] ${execEvent.message}`];
+            return next.length > MAX_LOG_ENTRIES ? next.slice(-MAX_LOG_ENTRIES) : next;
+          });
         }
 
         if (execEvent.type === 'node-status' && execEvent.nodeId && execEvent.nodeStatus) {

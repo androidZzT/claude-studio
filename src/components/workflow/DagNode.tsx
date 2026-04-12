@@ -82,8 +82,8 @@ function isSkillOrMcpDrag(e: React.DragEvent): boolean {
 }
 
 function DagNodeInner({ data, selected }: DagNodeProps) {
-  const inCount = (data as DagNodeData & { inCount?: number }).inCount ?? 0;
-  const outCount = (data as DagNodeData & { outCount?: number }).outCount ?? 0;
+  const inCount = data.inCount ?? 0;
+  const outCount = data.outCount ?? 0;
   const hasPreview = data.previewState != null;
   const hasExecution = data.executionStatus != null;
   const preview = previewClassName(data.previewState, data.checkpoint);

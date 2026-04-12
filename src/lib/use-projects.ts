@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Project } from '@/types/resources';
 
 const STORAGE_KEY = 'claude-studio:activeProjectId';
@@ -104,11 +104,17 @@ export function useProjectOpen() {
     setResult({ project: null, error: null, loading: false });
   }, []);
 
+  const projectPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    projectPathRef.current = result.project?.path ?? null;
+  }, [result.project]);
+
   const refetch = useCallback(async () => {
-    if (result.project) {
-      await openProject(result.project.path);
+    const currentPath = projectPathRef.current;
+    if (currentPath) {
+      await openProject(currentPath);
     }
-  }, [result.project, openProject]);
+  }, [openProject]);
 
   return { ...result, openProject, closeProject, refetch } as const;
 }

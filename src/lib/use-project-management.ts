@@ -104,6 +104,9 @@ export function useProjectManagement(): UseProjectManagementResult {
         projectOpen.openProject(decoded);
       }
     }
+    // Intentionally run only once on mount to restore the last-opened project.
+    // projectOpen.openProject is stable (useCallback with no deps) but the
+    // exhaustive-deps rule cannot verify that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

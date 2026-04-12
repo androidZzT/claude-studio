@@ -35,6 +35,7 @@ async function fetchRepoStars(owner: string, repo: string, fallbackStars: number
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: { Accept: 'application/vnd.github.v3+json' },
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return fallbackStars;
     const data = await res.json();
