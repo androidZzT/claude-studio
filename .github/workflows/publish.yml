@@ -12,22 +12,18 @@ jobs:
       contents: write
     env:
       PUPPETEER_SKIP_DOWNLOAD: 'true'
-      npm_config_maxsockets: '3'
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: |
-          npm cache clean --force
-          npm install --no-audit --no-fund
-        timeout-minutes: 5
+        run: yarn install --frozen-lockfile || yarn install
 
-      - run: npm run build
+      - run: yarn build
 
       - run: npm publish
         env:
