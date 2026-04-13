@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -19,9 +21,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
-      - run: npm ci --maxsockets 1
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
+      - run: npm ci
 
       - run: npm run build
 
