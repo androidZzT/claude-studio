@@ -1,21 +1,10 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
-import { Play, Square, Download, Upload, LayoutGrid, Save, Rocket, Wand2 } from 'lucide-react';
+import { useCallback } from 'react';
+import { FileOutput, Save, Rocket, Square, Wand2 } from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
 import { flowToWorkflow, workflowToYaml } from '@/lib/flow-to-workflow';
-import { validateWorkflow } from '@/lib/workflow-validation';
-import { workflowToFlow } from '@/lib/workflow-to-flow';
 import type { DagNodeData } from '@/lib/workflow-to-flow';
-import type { Workflow } from '@/types/resources';
-
-interface PreviewState {
-  readonly previewing: boolean;
-  readonly currentStep: number;
-  readonly totalSteps: number;
-  readonly startPreview: () => void;
-  readonly stopPreview: () => void;
-}
 
 interface WorkflowToolbarProps {
   readonly workflowName: string;
@@ -26,13 +15,10 @@ interface WorkflowToolbarProps {
   readonly edges: readonly Edge[];
   readonly dirty: boolean;
   readonly saving: boolean;
-  readonly preview: PreviewState;
   readonly executing: boolean;
   readonly simulate: boolean;
   readonly onSimulateChange: (simulate: boolean) => void;
   readonly onSave: () => void;
-  readonly onImport: (nodes: Node<DagNodeData>[], edges: Edge[]) => void;
-  readonly onAutoLayout: () => void;
   readonly onRun: () => void;
   readonly onCancelRun: () => void;
   readonly onGenerateOpen: () => void;
@@ -61,19 +47,14 @@ export function WorkflowToolbar({
   edges,
   dirty,
   saving,
-  preview,
   executing,
   simulate,
   onSimulateChange,
   onSave,
-  onImport,
-  onAutoLayout,
   onRun,
   onCancelRun,
   onGenerateOpen,
 }: WorkflowToolbarProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleExport = useCallback(() => {
     if (nodes.length === 0) return;
     const wf = flowToWorkflow(
@@ -86,45 +67,6 @@ export function WorkflowToolbar({
     const filename = `${sanitizeFilename(workflowName)}.yaml`;
     downloadBlob(yamlContent, filename);
   }, [workflowName, workflowDescription, nodes, edges]);
-
-  const handleImportClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileSelected = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const text = reader.result as string;
-        try {
-          const yaml = await import('js-yaml');
-          const parsed = yaml.load(text) as unknown;
-          const validation = validateWorkflow(parsed);
-          if (!validation.valid) {
-            window.alert(
-              `Invalid workflow:\n${validation.errors.join('\n')}`,
-            );
-            return;
-          }
-          const wf = parsed as Workflow;
-          const flow = workflowToFlow(wf);
-          onImport(flow.nodes, flow.edges);
-        } catch (err) {
-          const message =
-            err instanceof Error ? err.message : 'Unknown parse error';
-          window.alert(`Failed to parse YAML:\n${message}`);
-        }
-      };
-      reader.readAsText(file);
-
-      // Reset input so the same file can be re-imported
-      event.target.value = '';
-    },
-    [onImport],
-  );
 
   const btnBase =
     'rounded px-3 py-0.5 text-xs transition-colors bg-surface text-foreground hover:bg-surface-hover border border-border';
@@ -149,20 +91,13 @@ export function WorkflowToolbar({
       />
       <span className="text-[10px] text-muted">
         {nodes.length} nodes
-        {preview.previewing && (
-          <span className="ml-1 text-accent">
-            Step{' '}
-            {Math.min(preview.currentStep + 1, preview.totalSteps)}/
-            {preview.totalSteps}
-          </span>
-        )}
       </span>
 
       {/* Generate */}
       <button
         onClick={onGenerateOpen}
-        disabled={preview.previewing || executing}
-        className={!preview.previewing && !executing ? btnBase : btnDisabled}
+        disabled={executing}
+        className={!executing ? btnBase : btnDisabled}
         title="Generate workflow from description"
       >
         <span className="flex items-center gap-1"><Wand2 size={12} /> Generate</span>
@@ -171,49 +106,22 @@ export function WorkflowToolbar({
       {/* Export */}
       <button
         onClick={handleExport}
-        disabled={nodes.length === 0 || preview.previewing}
-        className={nodes.length > 0 && !preview.previewing ? btnBase : btnDisabled}
+        disabled={nodes.length === 0}
+        className={nodes.length > 0 ? btnBase : btnDisabled}
         title="Export workflow as YAML"
       >
-        <span className="flex items-center gap-1"><Download size={12} /> Export</span>
-      </button>
-
-      {/* Import */}
-      <button
-        onClick={handleImportClick}
-        disabled={preview.previewing}
-        className={!preview.previewing ? btnBase : btnDisabled}
-        title="Import workflow from YAML"
-      >
-        <span className="flex items-center gap-1"><Upload size={12} /> Import</span>
-      </button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".yaml,.yml"
-        onChange={handleFileSelected}
-        className="hidden"
-      />
-
-      {/* Auto-layout */}
-      <button
-        onClick={onAutoLayout}
-        disabled={nodes.length === 0 || preview.previewing}
-        className={nodes.length > 0 && !preview.previewing ? btnBase : btnDisabled}
-        title="Auto-arrange node layout"
-      >
-        <span className="flex items-center gap-1"><LayoutGrid size={12} /> Layout</span>
+        <span className="flex items-center gap-1"><FileOutput size={12} /> Export</span>
       </button>
 
       {/* Simulate / Live toggle */}
       <button
         onClick={() => onSimulateChange(!simulate)}
-        disabled={executing || preview.previewing}
+        disabled={executing}
         className={`rounded px-2 py-0.5 text-[10px] font-medium transition-colors border ${
           simulate
             ? 'border-border bg-surface text-muted hover:bg-surface-hover'
             : 'border-amber-500/50 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-        } ${executing || preview.previewing ? 'opacity-50 cursor-not-allowed' : ''}`}
+        } ${executing ? 'opacity-50 cursor-not-allowed' : ''}`}
         title={simulate ? 'Simulate mode: fake delays, no real execution' : 'Live mode: executes claude -p for each node'}
       >
         {simulate ? 'Simulate' : 'Live'}
@@ -222,11 +130,11 @@ export function WorkflowToolbar({
       {/* Run */}
       <button
         onClick={executing ? onCancelRun : onRun}
-        disabled={nodes.length === 0 || preview.previewing}
+        disabled={nodes.length === 0}
         className={`rounded px-3 py-0.5 text-xs transition-colors ${
           executing
             ? 'bg-red-500/80 text-white hover:bg-red-500'
-            : nodes.length > 0 && !preview.previewing
+            : nodes.length > 0
               ? simulate
                 ? 'bg-emerald-600 text-white hover:bg-emerald-500'
                 : 'bg-amber-600 text-white hover:bg-amber-500'
@@ -238,29 +146,12 @@ export function WorkflowToolbar({
         </span>
       </button>
 
-      {/* Preview */}
-      <button
-        onClick={preview.previewing ? preview.stopPreview : preview.startPreview}
-        disabled={nodes.length === 0 || executing}
-        className={`rounded px-3 py-0.5 text-xs transition-colors ${
-          preview.previewing
-            ? 'bg-red-500/80 text-white hover:bg-red-500'
-            : nodes.length > 0 && !executing
-              ? 'bg-surface text-foreground hover:bg-surface-hover border border-border'
-              : 'bg-surface text-muted cursor-not-allowed'
-        }`}
-      >
-        <span className="flex items-center gap-1">
-          {preview.previewing ? <><Square size={12} /> Stop</> : <><Play size={12} /> Preview</>}
-        </span>
-      </button>
-
       {/* Save */}
       <button
         onClick={onSave}
-        disabled={!dirty || saving || !workflowName.trim() || preview.previewing}
+        disabled={!dirty || saving || !workflowName.trim()}
         className={`rounded px-3 py-0.5 text-xs transition-colors ${
-          dirty && workflowName.trim() && !preview.previewing
+          dirty && workflowName.trim()
             ? 'bg-accent text-white hover:bg-accent-hover'
             : 'bg-surface text-muted cursor-not-allowed'
         }`}

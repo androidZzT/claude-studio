@@ -4,8 +4,6 @@ import { ensureStringArray } from './array-utils';
 
 export type EdgeType = 'dispatch' | 'report' | 'sync' | 'roundtrip';
 
-export type PreviewNodeState = 'waiting' | 'active' | 'completed';
-
 export type ExecutionNodeStatus =
   | 'pending'
   | 'queued'
@@ -29,7 +27,6 @@ export interface DagNodeData extends Record<string, unknown> {
   readonly nodeId: string;
   readonly skills: readonly string[];
   readonly mcpServers: readonly string[];
-  readonly previewState?: PreviewNodeState | null;
   readonly executionStatus?: ExecutionNodeStatus | null;
   readonly inCount?: number;
   readonly outCount?: number;

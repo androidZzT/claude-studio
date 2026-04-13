@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { Resource, Project, Workflow } from '@/types/resources';
 import type { DagNodeData } from '@/lib/workflow-to-flow';
@@ -130,6 +130,19 @@ export function useWorkflowState(
     setSelectedNodeId(null);
     setIsNewWorkflow(false);
   }, []);
+
+  // When project refreshes (e.g. file watcher), update selectedResource
+  // with the latest version from project to pick up external file changes
+  const prevProjectRef = useRef(activeProject);
+  useEffect(() => {
+    if (activeProject === prevProjectRef.current) return;
+    prevProjectRef.current = activeProject;
+    if (!selectedResource || selectedResource.type !== 'workflows' || !activeProject) return;
+    const updated = activeProject.workflows.find((w) => w.id === selectedResource.id);
+    if (updated && updated.content !== selectedResource.content) {
+      setSelectedResource(updated);
+    }
+  }, [activeProject, selectedResource]);
 
   const activeWorkflow = useMemo(() => {
     if (selectedResource?.type === 'workflows') return selectedResource;

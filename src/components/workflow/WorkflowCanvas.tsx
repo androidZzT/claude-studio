@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
+  ControlButton,
   MiniMap,
   useNodesState,
   useEdgesState,
@@ -18,6 +19,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { LayoutGrid } from 'lucide-react';
 import type { Resource, Workflow } from '@/types/resources';
 import {
   workflowToFlow,
@@ -46,7 +48,6 @@ import { StickyNote } from './StickyNote';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { GenerateModal } from './GenerateModal';
-import { usePreview } from '@/lib/use-preview';
 import { generateWorkflow } from '@/lib/workflow-generator';
 
 const nodeTypes: NodeTypes = {
@@ -90,7 +91,6 @@ interface WorkflowCanvasProps {
   readonly onSimulateChange?: (simulate: boolean) => void;
   readonly showCanvasGrid?: boolean;
   readonly showMinimap?: boolean;
-  readonly animationSpeed?: 'fast' | 'normal' | 'slow';
 }
 
 export type { NodeUpdateRequest, NodeDeleteRequest };
@@ -115,7 +115,6 @@ function WorkflowCanvasInner({
   onSimulateChange,
   showCanvasGrid = true,
   showMinimap = true,
-  animationSpeed = 'normal',
 }: WorkflowCanvasProps) {
   const reactFlowInstance = useReactFlow();
   const [saving, setSaving] = useState(false);
@@ -370,7 +369,6 @@ function WorkflowCanvasInner({
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
   const edgesRef = useRef(edges);
   useEffect(() => { edgesRef.current = edges; }, [edges]);
-  const previewingRef = useRef(false);
   const handleSaveRef = useRef(() => {});
 
   const handleSave = useCallback(async () => {
@@ -411,10 +409,6 @@ function WorkflowCanvasInner({
 
   useEffect(() => { handleSaveRef.current = handleSave; }, [handleSave]);
 
-  // Preview mode
-  const preview = usePreview(nodes, edges, animationSpeed);
-  useEffect(() => { previewingRef.current = preview.previewing; }, [preview.previewing]);
-
   const handleAutoLayout = useCallback(() => {
     if (nodes.length === 0) return;
     undoRedo.pushSnapshot(nodes, edges);
@@ -424,17 +418,6 @@ function WorkflowCanvasInner({
     setDirty(true);
     setTimeout(() => reactFlowInstance.fitView({ padding: 0.2 }), 50);
   }, [nodes, edges, setNodes, setEdges, undoRedo, reactFlowInstance]);
-
-  const handleImport = useCallback(
-    (importedNodes: Node<DagNodeData>[], importedEdges: Edge[]) => {
-      undoRedo.pushSnapshot(nodes, edges);
-      setNodes(importedNodes);
-      setEdges(importedEdges);
-      setDirty(true);
-      setTimeout(() => reactFlowInstance.fitView({ padding: 0.2 }), 50);
-    },
-    [nodes, edges, setNodes, setEdges, undoRedo, reactFlowInstance],
-  );
 
   const handleNameChange = useCallback((name: string) => { setWorkflowName(name); setDirty(true); }, []);
   const handleDescriptionChange = useCallback((desc: string) => { setWorkflowDescription(desc); setDirty(true); }, []);
@@ -511,14 +494,12 @@ function WorkflowCanvasInner({
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
         e.preventDefault();
-        if (previewingRef.current) return;
         const result = undoRedoRef.current.performRedo(nodesRef.current, edgesRef.current);
         if (result) { setNodes(result.nodes as Node<DagNodeData>[]); setEdges(result.edges as Edge[]); setDirty(true); }
         return;
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        if (previewingRef.current) return;
         const result = undoRedoRef.current.performUndo(nodesRef.current, edgesRef.current);
         if (result) { setNodes(result.nodes as Node<DagNodeData>[]); setEdges(result.edges as Edge[]); setDirty(true); }
         return;
@@ -544,7 +525,7 @@ function WorkflowCanvasInner({
     return counts;
   }, [nodes, edges]);
 
-  const previewNodes = useMemo(() => {
+  const displayNodes = useMemo(() => {
     const withCounts = nodes.map((node) => {
       const cc = connectionCounts.get(node.id) ?? { inCount: 0, outCount: 0 };
       return { ...node, data: { ...node.data, inCount: cc.inCount, outCount: cc.outCount } };
@@ -552,18 +533,8 @@ function WorkflowCanvasInner({
     if (executing && getNodeExecutionStatus) {
       return withCounts.map((node) => ({ ...node, data: { ...node.data, executionStatus: getNodeExecutionStatus(node.id) } }));
     }
-    if (!preview.previewing) return withCounts;
-    return withCounts.map((node) => ({ ...node, data: { ...node.data, previewState: preview.getNodePreviewState(node.id) } }));
-  }, [nodes, connectionCounts, preview, executing, getNodeExecutionStatus]);
-
-  const previewEdges = useMemo(() => {
-    if (!preview.previewing) return edges;
-    return edges.map((edge) => {
-      const active = preview.isEdgeActive(edge.source, edge.target);
-      if (!active) return edge;
-      return { ...edge, style: { ...edge.style, stroke: '#e8906f', strokeWidth: 3 } as CSSProperties, className: 'preview-edge-active' };
-    });
-  }, [edges, preview]);
+    return withCounts;
+  }, [nodes, connectionCounts, executing, getNodeExecutionStatus]);
 
   if (!workflow && !isNewWorkflow) {
     return (
@@ -595,13 +566,10 @@ function WorkflowCanvasInner({
         edges={edges}
         dirty={dirty}
         saving={saving}
-        preview={preview}
         executing={executing}
         simulate={simulate}
         onSimulateChange={onSimulateChange ?? (() => {})}
         onSave={handleSave}
-        onImport={handleImport}
-        onAutoLayout={handleAutoLayout}
         onRun={onRun ?? (() => {})}
         onCancelRun={onCancelRun ?? (() => {})}
         onGenerateOpen={() => setGenerateModalOpen(true)}
@@ -615,29 +583,34 @@ function WorkflowCanvasInner({
       />
       <div ref={dragDrop.wrapperRef} className="flex-1">
         <ReactFlow
-          nodes={previewNodes}
-          edges={previewEdges}
-          onNodesChange={preview.previewing ? undefined : handleNodesChange}
-          onEdgesChange={preview.previewing ? undefined : handleEdgesChange}
-          onConnect={preview.previewing ? undefined : onConnect}
-          onNodeClick={preview.previewing ? undefined : handleNodeClick}
-          onEdgeClick={preview.previewing ? undefined : handleEdgeClick}
-          onDragOver={preview.previewing ? undefined : dragDrop.handleDragOver}
-          onDrop={preview.previewing ? undefined : dragDrop.handleDrop}
-          onPaneContextMenu={preview.previewing ? undefined : ctxMenu.handlePaneContextMenu}
-          onNodeContextMenu={preview.previewing ? undefined : ctxMenu.handleNodeContextMenu}
-          onPaneClick={preview.previewing ? undefined : ctxMenu.handleCloseContextMenu}
+          nodes={displayNodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
+          onDragOver={dragDrop.handleDragOver}
+          onDrop={dragDrop.handleDrop}
+          onPaneContextMenu={ctxMenu.handlePaneContextMenu}
+          onNodeContextMenu={ctxMenu.handleNodeContextMenu}
+          onPaneClick={ctxMenu.handleCloseContextMenu}
           nodeTypes={nodeTypes}
           fitView
           proOptions={{ hideAttribution: true }}
           className="bg-background"
-          deleteKeyCode={preview.previewing ? null : ['Backspace', 'Delete']}
-          nodesDraggable={!preview.previewing}
-          nodesConnectable={!preview.previewing}
-          elementsSelectable={!preview.previewing}
+          deleteKeyCode={['Backspace', 'Delete']}
         >
           {showCanvasGrid && <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#333" />}
-          <Controls className="!bg-surface !border-border !shadow-lg [&>button]:!bg-surface [&>button]:!border-border [&>button]:!text-muted [&>button:hover]:!bg-surface-hover" />
+          <Controls className="!bg-surface !border-border !shadow-lg [&>button]:!bg-surface [&>button]:!border-border [&>button]:!text-muted [&>button:hover]:!bg-surface-hover">
+            <ControlButton
+              onClick={handleAutoLayout}
+              title="Auto-arrange node layout"
+              disabled={nodes.length === 0}
+            >
+              <LayoutGrid size={14} />
+            </ControlButton>
+          </Controls>
           {showMinimap && (
             <MiniMap
               nodeColor={(node) => (node.data as DagNodeData)?.checkpoint ? '#f59e0b' : '#666'}

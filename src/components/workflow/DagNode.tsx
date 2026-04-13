@@ -3,27 +3,10 @@
 import { memo, useCallback, useState } from 'react';
 import { Lock, ShieldCheck, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import type { DagNodeData, PreviewNodeState, ExecutionNodeStatus } from '@/lib/workflow-to-flow';
+import type { DagNodeData, ExecutionNodeStatus } from '@/lib/workflow-to-flow';
 import { isProtectedNode } from '@/lib/workflow-constants';
 
 type DagNodeProps = NodeProps & { data: DagNodeData };
-
-function previewClassName(previewState: PreviewNodeState | null | undefined, isCheckpoint: boolean): string {
-  if (!previewState) return '';
-
-  switch (previewState) {
-    case 'waiting':
-      return 'opacity-40 transition-opacity duration-300';
-    case 'active':
-      return isCheckpoint
-        ? 'preview-checkpoint-pulse border-amber-400 bg-amber-500/15'
-        : 'preview-node-pulse border-blue-400 bg-blue-500/10';
-    case 'completed':
-      return 'border-green-500/60 bg-green-500/5 transition-colors duration-300';
-    default:
-      return '';
-  }
-}
 
 function executionClassName(executionStatus: ExecutionNodeStatus | null | undefined): string {
   if (!executionStatus) return '';
@@ -65,8 +48,8 @@ function executionIcon(executionStatus: ExecutionNodeStatus | null | undefined) 
   }
 }
 
-function baseClassName(data: DagNodeData, selected: boolean | undefined, hasPreviewState: boolean, hasExecutionState: boolean): string {
-  if (hasPreviewState || hasExecutionState) {
+function baseClassName(data: DagNodeData, selected: boolean | undefined, hasExecutionState: boolean): string {
+  if (hasExecutionState) {
     // During preview/execution, base border/bg are overridden
     return 'border-border bg-surface';
   }
@@ -84,11 +67,9 @@ function isSkillOrMcpDrag(e: React.DragEvent): boolean {
 function DagNodeInner({ data, selected }: DagNodeProps) {
   const inCount = data.inCount ?? 0;
   const outCount = data.outCount ?? 0;
-  const hasPreview = data.previewState != null;
   const hasExecution = data.executionStatus != null;
-  const preview = previewClassName(data.previewState, data.checkpoint);
   const execution = executionClassName(data.executionStatus);
-  const base = baseClassName(data, selected, hasPreview, hasExecution);
+  const base = baseClassName(data, selected, hasExecution);
   const execIcon = executionIcon(data.executionStatus);
 
   const [dragOver, setDragOver] = useState(false);
@@ -144,7 +125,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
 
   return (
     <div
-      className={`min-w-[200px] max-w-[260px] rounded-lg border px-3 py-2 text-xs shadow-md transition-colors ${base} ${preview} ${execution} ${dragOverClass}`}
+      className={`min-w-[200px] max-w-[260px] rounded-lg border px-3 py-2 text-xs shadow-md transition-colors ${base} ${execution} ${dragOverClass}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOverNode}
