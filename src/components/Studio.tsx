@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Settings } from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
 import type { Resource } from '@/types/resources';
@@ -25,6 +25,7 @@ import { SkillCreateModal, type SkillFormData } from './skills/SkillCreateModal'
 import { OpenProjectModal } from './projects/OpenProjectModal';
 import { NewProjectModal } from './projects/NewProjectModal';
 import { getClaudeHomePath } from '@/lib/client-utils';
+import { ResizeHandle } from './panels/ResizeHandle';
 
 export function Studio() {
   const pm = useProjectManagement();
@@ -33,6 +34,12 @@ export function Studio() {
   const studioSettings = useStudioSettings();
   const execution = useExecution();
   const [simulate, setSimulate] = useState(true);
+  const [rightPanelWidth, setRightPanelWidth] = useState(320);
+  const rightPanelRef = useRef<HTMLElement>(null);
+
+  const handleRightPanelResize = useCallback((delta: number) => {
+    setRightPanelWidth((prev) => Math.min(Math.max(prev + delta, 240), 800));
+  }, []);
 
   const wfs = useWorkflowState(pm.activeProject, pm.activeProjectId);
 
@@ -61,7 +68,8 @@ export function Studio() {
   const [skillCreateOpen, setSkillCreateOpen] = useState(false);
   const [skillCreateSaving, setSkillCreateSaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [claudeConfigOpen, setClaudeConfigOpen] = useState(false);
+  const [projectConfigOpen, setProjectConfigOpen] = useState(false);
+  const [globalConfigOpen, setGlobalConfigOpen] = useState(false);
 
   const handleCreateAgent = useCallback(async (data: AgentFormData) => {
     if (!pm.activeProjectId) return;
@@ -151,6 +159,57 @@ export function Studio() {
       console.error('Failed to delete skill:', error);
     }
   }, [pm.activeProjectId, wfs, pm.projectOpen, refetchResources]);
+
+  const handleImportAgent = useCallback(async (name: string, content: string) => {
+    if (!pm.activeProjectId) return;
+    try {
+      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, content }),
+      });
+      const json = await res.json() as { success: boolean; error?: string };
+      if (json.success) {
+        pm.projectOpen.refetch();
+      } else {
+        window.alert(`Failed to import agent: ${json.error ?? 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Failed to import agent:', error);
+    }
+  }, [pm.activeProjectId, pm.projectOpen]);
+
+  const handleImportSkill = useCallback(async (name: string, rawContent: string) => {
+    if (!pm.activeProjectId) return;
+    try {
+      // Strip frontmatter if present — the API rebuilds it from name/description
+      let body = rawContent;
+      let description = '';
+      const fmMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+      if (fmMatch) {
+        const fmBlock = fmMatch[1];
+        body = fmMatch[2];
+        const descLine = fmBlock.match(/^description:\s*(.+)$/m);
+        if (descLine) {
+          description = descLine[1].trim().replace(/^['"]|['"]$/g, '');
+        }
+      }
+      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, content: body }),
+      });
+      const json = await res.json() as { success: boolean; error?: string };
+      if (json.success) {
+        pm.projectOpen.refetch();
+        refetchResources();
+      } else {
+        window.alert(`Failed to import skill: ${json.error ?? 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Failed to import skill:', error);
+    }
+  }, [pm.activeProjectId, pm.projectOpen, refetchResources]);
 
   const handleDeleteMemory = useCallback(async (memory: Resource) => {
     if (!memory.path) return;
@@ -254,10 +313,13 @@ export function Studio() {
             onSelectClaudeMd={wfs.handleSelectClaudeMd}
             onCreateWorkflow={wfs.handleCreateWorkflow}
             onCreateAgent={() => setAgentCreateOpen(true)}
+            onImportAgent={handleImportAgent}
             onDeleteAgent={handleDeleteAgent}
             onCreateSkill={() => setSkillCreateOpen(true)}
+            onImportSkill={handleImportSkill}
             onDeleteSkill={handleDeleteSkill}
-            onOpenClaudeConfig={() => setClaudeConfigOpen(true)}
+            onOpenClaudeConfig={() => setProjectConfigOpen(true)}
+            onOpenGlobalConfig={() => setGlobalConfigOpen(true)}
           />
         </aside>
 
@@ -290,12 +352,16 @@ export function Studio() {
               onSimulateChange={setSimulate}
               showCanvasGrid={studioSettings.settings.showCanvasGrid}
               showMinimap={studioSettings.settings.showMinimap}
-              animationSpeed={studioSettings.settings.animationSpeed}
             />
           )}
         </section>
 
-        <aside className="w-80 shrink-0 overflow-y-auto border-l border-border bg-surface">
+        <ResizeHandle side="left" onResize={handleRightPanelResize} />
+        <aside
+          ref={rightPanelRef}
+          style={{ width: rightPanelWidth }}
+          className="shrink-0 overflow-y-auto border-l border-border bg-surface"
+        >
           {execution.executionState ? (
             <ExecutionPanel
               executionState={execution.executionState}
@@ -338,8 +404,17 @@ export function Studio() {
         onUpdateSetting={studioSettings.updateSetting}
       />
       <SettingsModal
-        open={claudeConfigOpen}
-        onClose={() => setClaudeConfigOpen(false)}
+        open={projectConfigOpen}
+        onClose={() => setProjectConfigOpen(false)}
+        settingsPath={pm.activeProject ? `${pm.activeProject.path}/.claude/settings.json` : ''}
+        projectPath={pm.activeProject?.path}
+        projectName={pm.activeProject?.name}
+        projectAgents={pm.activeProject?.agents}
+        projectSkills={pm.activeProject?.skills}
+      />
+      <SettingsModal
+        open={globalConfigOpen}
+        onClose={() => setGlobalConfigOpen(false)}
         settingsPath={`${getClaudeHomePath()}settings.json`}
         projectName={pm.activeProject?.name}
         projectAgents={pm.activeProject?.agents}
