@@ -1,6 +1,6 @@
 {
   "name": "claude-code-studio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Visual orchestration platform for Claude Code — manage agents, workflows, skills & rules in ~/.claude/",
   "keywords": [
     "claude-code",
