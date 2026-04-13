@@ -29,3 +29,17 @@ export function getSettingsPath(): string {
 export function getRootConfigPath(): string {
   return path.join(os.homedir(), '.claude.json');
 }
+
+export function encodeProjectPath(projectPath: string): string {
+  return '-' + projectPath.replace(/[/_]/g, '-');
+}
+
+export function getProjectSharedSettingsPath(projectPath: string): string {
+  return path.join(projectPath, '.claude', 'settings.json');
+}
+
+export function getProjectLocalSettingsPath(projectPath: string): string {
+  const claudeHome = getClaudeHome();
+  const encoded = encodeProjectPath(projectPath);
+  return path.join(claudeHome, 'projects', encoded, 'settings.json');
+}
