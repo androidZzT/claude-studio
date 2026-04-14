@@ -79,6 +79,47 @@ function updateWorkflowsSection(
 }
 
 /**
+ * POST /api/projects/:id/claudemd
+ * Accepts { content: string }
+ * Saves the full CLAUDE.md content for the project.
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse<ApiResponse<{ updated: boolean }>>> {
+  const { id } = await params;
+
+  try {
+    const body = await request.json() as {
+      readonly content: string;
+    };
+
+    if (typeof body.content !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Missing required field: content' },
+        { status: 400 }
+      );
+    }
+
+    const claudeMdPath = await getClaudeMdPath(id);
+    if (!claudeMdPath) {
+      return NextResponse.json(
+        { success: false, error: `Project not found: ${id}` },
+        { status: 404 }
+      );
+    }
+
+    await fs.mkdir(path.dirname(claudeMdPath), { recursive: true });
+    await fs.writeFile(claudeMdPath, body.content, 'utf-8');
+
+    return NextResponse.json({ success: true, data: { updated: true } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to save CLAUDE.md';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+/**
  * PUT /api/projects/:id/claudemd
  * Accepts { workflowName: string, workflowLine: string }
  * Updates or appends a workflow reference line in the `## Workflows` section.

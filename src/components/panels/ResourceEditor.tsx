@@ -90,18 +90,28 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
     setSaving(true);
     try {
       const isPathBased = resource.type === 'memories';
-      const isClaudeMd = resource.path.endsWith('/CLAUDE.md');
-      const url = isPathBased
-        ? '/api/files'
-        : `/api/resources/${resource.type}/${resource.id}`;
-      const payload = isPathBased
-        ? { path: resource.path, content: value, frontmatter: resource.frontmatter }
-        : isClaudeMd
-          ? { content: value, frontmatter: resource.frontmatter, path: resource.path }
-          : { content: value, frontmatter: resource.frontmatter };
+      const isClaudeMd = resource.path.endsWith('/CLAUDE.md') && projectId;
+
+      let url: string;
+      let method: string;
+      let payload: Record<string, unknown>;
+
+      if (isPathBased) {
+        url = '/api/files';
+        method = 'PUT';
+        payload = { path: resource.path, content: value, frontmatter: resource.frontmatter };
+      } else if (isClaudeMd) {
+        url = `/api/projects/${encodeURIComponent(projectId)}/claudemd`;
+        method = 'POST';
+        payload = { content: value };
+      } else {
+        url = `/api/resources/${resource.type}/${encodeURIComponent(resource.id)}`;
+        method = 'PUT';
+        payload = { content: value, frontmatter: resource.frontmatter };
+      }
 
       const res = await fetch(url, {
-        method: 'PUT',
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
