@@ -131,15 +131,21 @@ export function useWorkflowState(
     setIsNewWorkflow(false);
   }, []);
 
-  // When project refreshes (e.g. file watcher), update selectedResource
-  // with the latest version from project to pick up external file changes
+  // When project refreshes (e.g. file watcher or save), update selectedResource
+  // with the latest version from project to pick up content AND frontmatter changes.
+  // Canvas reads from frontmatter (parsed object), so comparing only content is
+  // insufficient — a YAML edit changes both content and frontmatter.
   const prevProjectRef = useRef(activeProject);
   useEffect(() => {
     if (activeProject === prevProjectRef.current) return;
     prevProjectRef.current = activeProject;
     if (!selectedResource || selectedResource.type !== 'workflows' || !activeProject) return;
     const updated = activeProject.workflows.find((w) => w.id === selectedResource.id);
-    if (updated && updated.content !== selectedResource.content) {
+    if (!updated) return;
+    const contentChanged = updated.content !== selectedResource.content;
+    const frontmatterChanged =
+      JSON.stringify(updated.frontmatter) !== JSON.stringify(selectedResource.frontmatter);
+    if (contentChanged || frontmatterChanged) {
       setSelectedResource(updated);
     }
   }, [activeProject, selectedResource]);

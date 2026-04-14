@@ -91,6 +91,7 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
     try {
       const isPathBased = resource.type === 'memories';
       const isClaudeMd = resource.path.endsWith('/CLAUDE.md') && projectId;
+      const isProjectWorkflow = resource.type === 'workflows' && projectId;
 
       let url: string;
       let method: string;
@@ -104,6 +105,10 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
         url = `/api/projects/${encodeURIComponent(projectId)}/claudemd`;
         method = 'POST';
         payload = { content: value };
+      } else if (isProjectWorkflow) {
+        url = `/api/projects/${encodeURIComponent(projectId)}/workflows`;
+        method = 'PUT';
+        payload = { name: resource.name, content: value };
       } else {
         url = `/api/resources/${resource.type}/${encodeURIComponent(resource.id)}`;
         method = 'PUT';
