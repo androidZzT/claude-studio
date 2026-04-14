@@ -26,6 +26,7 @@ interface ProjectPanelProps {
   readonly onSelectResource: (resource: Resource) => void;
   readonly onSelectClaudeMd: (project: Project) => void;
   readonly onCreateWorkflow: (project: Project, template?: Workflow) => void;
+  readonly onDeleteWorkflow?: (workflow: Resource) => void;
   readonly onCreateAgent?: () => void;
   readonly onImportAgent?: (name: string, content: string) => void;
   readonly onDeleteAgent?: (agent: Resource) => void;
@@ -51,6 +52,7 @@ export function ProjectPanel({
   onSelectResource,
   onSelectClaudeMd,
   onCreateWorkflow,
+  onDeleteWorkflow,
   onCreateAgent,
   onImportAgent,
   onDeleteAgent,
@@ -110,6 +112,7 @@ export function ProjectPanel({
             selectedId={selectedId}
             onSelectResource={onSelectResource}
             onCreateWorkflow={onCreateWorkflow}
+            onDeleteWorkflow={onDeleteWorkflow}
             onCreateAgent={onCreateAgent}
             onImportAgent={onImportAgent}
             onDeleteAgent={onDeleteAgent}
@@ -140,6 +143,7 @@ interface ActiveProjectContentProps {
   readonly selectedId: string | null;
   readonly onSelectResource: (resource: Resource) => void;
   readonly onCreateWorkflow: (project: Project, template?: Workflow) => void;
+  readonly onDeleteWorkflow?: (workflow: Resource) => void;
   readonly onCreateAgent?: () => void;
   readonly onImportAgent?: (name: string, content: string) => void;
   readonly onDeleteAgent?: (agent: Resource) => void;
@@ -153,6 +157,7 @@ function ActiveProjectContent({
   selectedId,
   onSelectResource,
   onCreateWorkflow,
+  onDeleteWorkflow,
   onCreateAgent,
   onImportAgent,
   onDeleteAgent,
@@ -189,6 +194,7 @@ function ActiveProjectContent({
         selectedId={selectedId}
         onSelectResource={onSelectResource}
         onCreateWorkflow={onCreateWorkflow}
+        onDeleteWorkflow={onDeleteWorkflow}
       />
     </div>
   );
@@ -515,6 +521,7 @@ interface WorkflowsSectionProps {
   readonly selectedId: string | null;
   readonly onSelectResource: (resource: Resource) => void;
   readonly onCreateWorkflow: (project: Project, template?: Workflow) => void;
+  readonly onDeleteWorkflow?: (workflow: Resource) => void;
 }
 
 function WorkflowsSection({
@@ -523,8 +530,10 @@ function WorkflowsSection({
   selectedId,
   onSelectResource,
   onCreateWorkflow,
+  onDeleteWorkflow,
 }: WorkflowsSectionProps) {
   const [showTemplates, setShowTemplates] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleNewBlank = useCallback(() => {
@@ -540,6 +549,31 @@ function WorkflowsSection({
   const handleImportClick = useCallback(() => {
     importInputRef.current?.click();
   }, []);
+
+  const handleDeleteClick = useCallback(
+    (e: React.MouseEvent, workflow: Resource) => {
+      e.stopPropagation();
+      setConfirmDeleteId(workflow.id);
+    },
+    [],
+  );
+
+  const handleConfirmDelete = useCallback(
+    (e: React.MouseEvent, workflow: Resource) => {
+      e.stopPropagation();
+      onDeleteWorkflow?.(workflow);
+      setConfirmDeleteId(null);
+    },
+    [onDeleteWorkflow],
+  );
+
+  const handleCancelDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setConfirmDeleteId(null);
+    },
+    [],
+  );
 
   const handleImportFile = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -578,19 +612,44 @@ function WorkflowsSection({
         <ul className="flex flex-col">
           {workflows.map((wf) => (
             <li key={wf.id}>
-              <button
-                onClick={() => onSelectResource(wf)}
-                className={`w-full rounded px-3 py-0.5 text-left text-xs transition-colors ${
-                  selectedId === wf.id
-                    ? 'bg-accent/20 text-accent font-medium'
-                    : 'text-foreground/70 hover:bg-surface-hover'
-                }`}
-              >
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-[10px]" />
-                  <span className="truncate">{wf.name}</span>
-                </span>
-              </button>
+              {confirmDeleteId === wf.id ? (
+                <div className="flex items-center gap-1 px-3 py-0.5">
+                  <span className="text-[10px] text-red-400">Delete?</span>
+                  <button
+                    onClick={(e) => handleConfirmDelete(e, wf)}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-red-500/20"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={handleCancelDelete}
+                    className="rounded px-1.5 py-0.5 text-[10px] text-muted hover:bg-surface-hover"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => onSelectResource(wf)}
+                  className={`group w-full rounded px-3 py-0.5 text-left text-xs transition-colors ${
+                    selectedId === wf.id
+                      ? 'bg-accent/20 text-accent font-medium'
+                      : 'text-foreground/70 hover:bg-surface-hover'
+                  }`}
+                >
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-[10px]" />
+                    <span className="flex-1 truncate">{wf.name}</span>
+                    {onDeleteWorkflow && (
+                      <Trash2
+                        size={10}
+                        className="shrink-0 text-muted/0 group-hover:text-muted/50 hover:!text-red-400 transition-colors"
+                        onClick={(e) => handleDeleteClick(e, wf)}
+                      />
+                    )}
+                  </span>
+                </button>
+              )}
             </li>
           ))}
         </ul>

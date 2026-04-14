@@ -88,6 +88,56 @@ export async function POST(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse<ApiResponse<null>>> {
+  const { id } = await params;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const workflowName = searchParams.get('name');
+
+    if (!workflowName) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required query param: name' },
+        { status: 400 }
+      );
+    }
+
+    const safeName = sanitizeFileName(workflowName);
+    if (!safeName) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid workflow name: contains unsafe characters' },
+        { status: 400 },
+      );
+    }
+
+    const workflowsDir = await getProjectWorkflowsDir(id);
+    if (!workflowsDir) {
+      return NextResponse.json(
+        { success: false, error: `Project not found: ${id}` },
+        { status: 404 }
+      );
+    }
+
+    const filePath = path.join(workflowsDir, `${safeName}.yaml`);
+
+    if (!(await fileExists(filePath))) {
+      return NextResponse.json(
+        { success: false, error: `Workflow not found: ${workflowName}` },
+        { status: 404 }
+      );
+    }
+
+    await fs.unlink(filePath);
+    return NextResponse.json({ success: true, data: null });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete workflow';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: RouteParams

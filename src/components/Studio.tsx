@@ -160,6 +160,25 @@ export function Studio() {
     }
   }, [pm.activeProjectId, wfs, pm.projectOpen, refetchResources]);
 
+  const handleDeleteWorkflow = useCallback(async (workflow: Resource) => {
+    if (!pm.activeProjectId) return;
+    try {
+      const res = await fetch(
+        `/api/projects/${encodeURIComponent(pm.activeProjectId)}/workflows?name=${encodeURIComponent(workflow.name)}`,
+        { method: 'DELETE' },
+      );
+      const json = await res.json() as { success: boolean };
+      if (json.success) {
+        if (wfs.selectedResource?.id === workflow.id) {
+          wfs.setSelectedResource(null);
+        }
+        pm.projectOpen.refetch();
+      }
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+    }
+  }, [pm.activeProjectId, wfs, pm.projectOpen]);
+
   const handleImportAgent = useCallback(async (name: string, content: string) => {
     if (!pm.activeProjectId) return;
     try {
@@ -312,6 +331,7 @@ export function Studio() {
             onSelectResource={wfs.handleSelectResource}
             onSelectClaudeMd={wfs.handleSelectClaudeMd}
             onCreateWorkflow={wfs.handleCreateWorkflow}
+            onDeleteWorkflow={handleDeleteWorkflow}
             onCreateAgent={() => setAgentCreateOpen(true)}
             onImportAgent={handleImportAgent}
             onDeleteAgent={handleDeleteAgent}
