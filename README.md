@@ -1,10 +1,43 @@
-[English](README.md) | [中文](README_CN.md)
+<div align="center">
+  <img src="docs/guide-dark.png" width="720" alt="claude-studio" style="border-radius: 16px;">
+  <h1>claude-studio</h1>
+  <p><strong>Visual orchestration platform for Claude Code Agent Teams.</strong></p>
+  <p><em>Design, manage, and execute multi-agent workflows through an intuitive DAG editor.</em></p>
 
-# claude-studio
+  <p>
+    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/v/claude-code-studio?color=blue&style=flat-square&logo=npm" alt="npm"></a>
+    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/dm/claude-code-studio?color=green&style=flat-square" alt="Downloads"></a>
+    <a href="https://github.com/androidZzT/claude-studio/stargazers"><img src="https://img.shields.io/github/stars/androidZzT/claude-studio?style=flat-square" alt="Stars"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/androidZzT/claude-studio?style=flat-square" alt="License"></a>
+    <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform">
+  </p>
 
-Visual orchestration platform for Claude Code Agent Teams.
+  <p>
+    <a href="#-features">Features</a> &bull;
+    <a href="#%EF%B8%8F-screenshots">Screenshots</a> &bull;
+    <a href="#-quick-start">Quick Start</a> &bull;
+    <a href="#-how-it-works">How It Works</a> &bull;
+    <a href="README_CN.md">中文</a>
+  </p>
+</div>
 
-Design, manage, and execute multi-agent workflows through an intuitive DAG editor. Create agents, skills, and workflows — then run them with built-in execution engine.
+---
+
+## Features
+
+- 🔀 **Visual Workflow Editor** — Drag-and-drop DAG editor with 4 edge types (dispatch / report / sync / roundtrip)
+- 🤖 **Agent Management** — Create, edit, delete agents with 9 built-in templates
+- ⚡ **Skill Management** — Create skills with templates, bind to agent nodes
+- 🚀 **Execution Engine** — Run workflows with real-time status, checkpoint approval
+- 🪄 **AI Generation** — Describe what you want, Claude generates workflow/agent/skill via `claude -p`
+- 🔌 **MCP & Settings** — Visual config for MCP servers, hooks, permissions
+- 📦 **Plugin Export** — Export project as standard Claude Code plugin package
+- 🧠 **Memory Inspector** — Read-only view of project memories with delete capability
+- 🎯 **CLAUDE.md Sync** — Workflows auto-sync to CLAUDE.md for Claude Code integration
+- 🌓 **Theme Switching** — Dark, Light, and System theme modes
+- ⚙️ **Project-level Config** — Manage shared and local Claude configuration per project
+
+---
 
 ## Screenshots
 
@@ -35,24 +68,7 @@ Design, manage, and execute multi-agent workflows through an intuitive DAG edito
   </tr>
 </table>
 
-## Features
-
-- 🔀 **Visual Workflow Editor** — Drag-and-drop DAG editor with 4 edge types (dispatch / report / sync / roundtrip)
-- 🤖 **Agent Management** — Create, edit, delete agents with 9 built-in templates
-- ⚡ **Skill Management** — Create skills with templates, bind to agent nodes
-- 🚀 **Execution Engine** — Run workflows with real-time status, checkpoint approval
-- 🪄 **AI Generation** — Describe what you want, Claude generates workflow/agent/skill via `claude -p`
-- 🔌 **MCP & Settings** — Visual config for MCP servers, hooks, permissions
-- 📦 **Plugin Export** — Export project as standard Claude Code plugin package
-- 🧠 **Memory Inspector** — Read-only view of project memories with delete capability
-- 🎯 **CLAUDE.md Sync** — Workflows auto-sync to CLAUDE.md for Claude Code integration
-- 🌐 **Community Links** — Live GitHub stars for awesome-claude-code, agent templates, skills collections
-- 🗂️ **System Directory Picker** — Native OS directory picker for opening projects
-- 🌓 **Theme Switching** — Dark, Light, and System theme modes
-- ↔️ **Resizable Panels** — Drag to resize the right panel
-- ⚙️ **Project-level Config** — Manage shared and local Claude configuration per project
-- 📐 **Project-first Layout** — Restructured left panel with project navigation priority
-- 📥 **Import/Export** — Improved import with FileInput/FileOutput icons in sidebar
+---
 
 ## Quick Start
 
@@ -75,6 +91,8 @@ npm install
 npm run dev -- -p 3100
 ```
 
+---
+
 ## How It Works
 
 1. **Open or create a project** — point to any directory with `.claude/`
@@ -83,6 +101,8 @@ npm run dev -- -p 3100
 4. **Bind skills & MCPs** — drag from panel onto agent nodes
 5. **Run** — execute with checkpoint gates
 6. **Export** — save as YAML or export as Claude Code plugin
+
+---
 
 ## Architecture
 
