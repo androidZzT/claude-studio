@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/guide-dark.png" width="720" alt="claude-studio" style="border-radius: 16px;">
+  <img src="docs/welcome.png" width="720" alt="claude-studio" style="border-radius: 16px;">
   <h1>claude-studio</h1>
   <p><strong>Claude Code Agent Teams 的可视化编排平台。</strong></p>
   <p><em>通过直观的 DAG 编辑器设计、管理和执行多 Agent 工作流。</em></p>

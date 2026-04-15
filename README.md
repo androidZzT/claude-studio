@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/guide-dark.png" width="720" alt="claude-studio" style="border-radius: 16px;">
+  <img src="docs/welcome.png" width="720" alt="claude-studio" style="border-radius: 16px;">
   <h1>claude-studio</h1>
   <p><strong>Visual orchestration platform for Claude Code Agent Teams.</strong></p>
   <p><em>Design, manage, and execute multi-agent workflows through an intuitive DAG editor.</em></p>
