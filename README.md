@@ -109,10 +109,14 @@ claude-studio is a GUI for the `~/.claude/` directory — the same directory Cla
 
 1. **Open a project** — point to any directory with `.claude/` (or create one)
 2. **Create agents** — from 9 built-in templates or AI generation
-3. **Build workflow** — drag agents onto canvas, connect with 4 edge types
+3. **Build workflow** — drag agents onto canvas, connect with 4 edge types, or **use Generate** (see below)
 4. **Bind skills & MCPs** — drag from panel onto agent nodes
 5. **Run** — execute with real-time status and checkpoint approval
 6. **Use in Claude Code** — open the same project in Claude Code, your agents/skills/workflows are ready
+
+### AI Generate
+
+Describe what you want in plain text, and Claude generates a complete workflow for you via `claude -p`. No manual node creation needed — just type a description like *"Code review pipeline with security check"* or *"TDD workflow for KMP project"*, hit **Generate**, and get a full DAG with agents, edges, skills, and checkpoints. You can then fine-tune the result visually.
 
 ### Integration with CLAUDE.md
 

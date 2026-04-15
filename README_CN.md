@@ -109,10 +109,14 @@ claude-studio 是 `~/.claude/` 目录的 GUI —— 与 Claude Code 运行时读
 
 1. **打开项目** — 指向任何包含 `.claude/` 的目录（或新建一个）
 2. **创建 Agent** — 从 9 个内置模板或 AI 生成
-3. **编排工作流** — 拖拽 Agent 到画布，用 4 种边类型连线
+3. **编排工作流** — 拖拽 Agent 到画布，用 4 种边类型连线，或**使用 Generate 智能生成**（见下方）
 4. **绑定 Skill 和 MCP** — 从面板拖到 Agent 节点
 5. **执行** — Run 执行，实时查看状态，审批 Checkpoint
 6. **在 Claude Code 中使用** — 打开同一个项目目录，Agent/Skill/Workflow 即刻可用
+
+### AI 智能生成
+
+用自然语言描述你想要的工作流，Claude 通过 `claude -p` 自动生成完整的 DAG。无需手动创建节点——只需输入描述，比如「带安全检查的 Code Review 流水线」或「KMP 项目的 TDD 工作流」，点击 **Generate**，即可得到包含 Agent、边、Skill 和 Checkpoint 的完整工作流。然后你可以在画布上可视化微调。
 
 ### 与 CLAUDE.md 的联动
 
