@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startExecution } from '@/lib/execution-engine';
+import { startExecution } from '@studio-core/execution-engine';
+import { parseWorkflowDocument } from '@studio-core/workflow-document';
 import type { ApiResponse } from '@/types/resources';
-import yaml from 'js-yaml';
 
 interface WorkflowNodeParsed {
   readonly id: string;
@@ -39,14 +39,14 @@ export async function POST(
     if (body.workflow) {
       workflow = body.workflow;
     } else if (body.workflowYaml) {
-      const parsed = yaml.load(body.workflowYaml) as WorkflowParsed | null;
+      const parsed = parseWorkflowDocument(body.workflowYaml);
       if (!parsed || !parsed.name || !parsed.nodes) {
         return NextResponse.json(
-          { success: false, error: 'Invalid workflow YAML: missing name or nodes' },
+          { success: false, error: 'Invalid workflow document: missing name or nodes' },
           { status: 400 }
         );
       }
-      workflow = parsed;
+      workflow = parsed as unknown as WorkflowParsed;
     }
 
     if (!workflow) {

@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# demo recordings
+/demo-output/
+
+# local editor settings
+/.vscode/
+
+# vscode extension
+/extensions/vscode/node_modules/
+/extensions/vscode/dist/
+/extensions/vscode/media/studio/
+/extensions/vscode/*.vsix
+
+# studio-core package
+/packages/studio-core/node_modules/

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Resource, ResourceType } from '@/types/resources';
+import { apiFetch } from './api-client';
 
 export function useResources() {
   const [resources, setResources] = useState<readonly Resource[]>([]);
@@ -12,7 +13,7 @@ export function useResources() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/resources');
+      const res = await apiFetch('/api/resources');
       const json = await res.json();
       if (json.success) {
         setResources(json.data);

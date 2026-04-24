@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="docs/welcome.png" width="720" alt="claude-studio" style="border-radius: 16px;">
-  <h1>claude-studio</h1>
+  <img src="docs/welcome.png" width="720" alt="harness-studio" style="border-radius: 16px;">
+  <h1>harness-studio</h1>
   <p><strong>Visual orchestration platform for Claude Code Agent Teams.</strong></p>
   <p><em>Design, manage, and execute multi-agent workflows through an intuitive DAG editor.</em></p>
 
   <p>
-    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/v/claude-code-studio?color=blue&style=flat-square&logo=npm" alt="npm"></a>
-    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/dm/claude-code-studio?color=green&style=flat-square" alt="Downloads"></a>
-    <a href="https://github.com/androidZzT/claude-studio/stargazers"><img src="https://img.shields.io/github/stars/androidZzT/claude-studio?style=flat-square" alt="Stars"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/androidZzT/claude-studio?style=flat-square" alt="License"></a>
+    <a href="https://www.npmjs.com/package/harness-studio"><img src="https://img.shields.io/npm/v/harness-studio?color=blue&style=flat-square&logo=npm" alt="npm"></a>
+    <a href="https://www.npmjs.com/package/harness-studio"><img src="https://img.shields.io/npm/dm/harness-studio?color=green&style=flat-square" alt="Downloads"></a>
+    <a href="https://github.com/androidZzT/harness-studio/stargazers"><img src="https://img.shields.io/github/stars/androidZzT/harness-studio?style=flat-square" alt="Stars"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/androidZzT/harness-studio?style=flat-square" alt="License"></a>
     <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform">
   </p>
 
@@ -73,35 +73,54 @@
 ## Quick Start
 
 ```bash
-npx claude-code-studio
+npx harness-studio
 ```
 
 Or with custom port:
 
 ```bash
-npx claude-code-studio --port 3200
+npx harness-studio --port 3200
 ```
 
 ### Development
 
 ```bash
-git clone https://github.com/androidZzT/claude-studio.git
-cd claude-studio
+git clone https://github.com/androidZzT/harness-studio.git
+cd harness-studio
 npm install
 npm run dev -- -p 3100
 ```
+
+### VS Code Extension (MVP)
+
+A starter VS Code extension is available under `extensions/vscode`.
+
+```bash
+npm install
+npm --prefix extensions/vscode install
+npm run vscode:build
+```
+
+Then open `extensions/vscode` in VS Code and press `F5` to launch an Extension Development Host.
+Use command palette:
+
+- `Harness Studio: Start Server`
+- `Harness Studio: Open`
+- `Harness Studio: Show Logs`
+
+For iterative extension development, run `npm run vscode:watch` in the repo root.
 
 ---
 
 ## How It Works
 
-claude-studio is a GUI for the `~/.claude/` directory — the same directory Claude Code reads at runtime. Everything you create in the studio is written directly to `.claude/` as standard files:
+harness-studio is a GUI for the `~/.claude/` directory — the same directory Claude Code reads at runtime. Everything you create in the studio is written directly to `.claude/` as standard files:
 
 | You create in studio | Saved as | Claude Code reads it as |
 |---|---|---|
 | Agent | `.claude/agents/name.md` | Agent definition (spawnable via `Agent` tool) |
 | Skill | `.claude/skills/name.md` | Slash command (`/skill-name`) |
-| Workflow | `.claude/workflows/name.yaml` | Team orchestration blueprint |
+| Workflow | `.claude/workflows/name.md` | Team orchestration blueprint (YAML content in Markdown file) |
 | CLAUDE.md edits | `CLAUDE.md` | Project instructions |
 | Settings | `.claude/settings.json` | MCP servers, hooks, permissions |
 
@@ -120,10 +139,10 @@ Describe what you want in plain text, and Claude generates a complete workflow f
 
 ### Integration with CLAUDE.md
 
-When you save a workflow, claude-studio **auto-syncs** it into `CLAUDE.md`. This means Claude Code automatically sees your team structure, agent roles, and workflow definitions when it starts. You design the team visually, Claude Code executes it.
+When you save a workflow, harness-studio **auto-syncs** it into `CLAUDE.md`. This means Claude Code automatically sees your team structure, agent roles, and workflow definitions when it starts. You design the team visually, Claude Code executes it.
 
 ```
-claude-studio (design) → ~/.claude/ (files) → Claude Code (runtime)
+harness-studio (design) → ~/.claude/ (files) → Claude Code (runtime)
 ```
 
 ---
@@ -143,6 +162,9 @@ claude-studio (design) → ~/.claude/ (files) → Claude Code (runtime)
 ```
 
 Tech stack: Next.js · React Flow v12 · Monaco Editor · TypeScript · Tailwind CSS · Lucide Icons
+
+Architecture migration is in progress toward a `studio-core` + adapter model:
+see [docs/studio-core-migration.md](docs/studio-core-migration.md).
 
 ## Edge Types
 

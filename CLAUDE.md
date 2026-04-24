@@ -1,4 +1,4 @@
-# claude-studio
+# harness-studio
 
 Claude Code 的可视化编排平台。读写 `~/.claude/` 目录，提供 Agent/Workflow/Skill/Rule/MCP 的可视化管理和工作流 DAG 编排。
 
@@ -13,7 +13,7 @@ Claude Code 的可视化编排平台。读写 `~/.claude/` 目录，提供 Agent
 - **前端**：React + React Flow v12（DAG 编辑）+ Monaco Editor（MD/YAML 编辑）
 - **后端**：Next.js API Routes，纯文件系统操作，无数据库
 - **语言**：TypeScript 全栈
-- **运行方式**：`npx claude-studio` 启动本地服务，浏览器访问
+- **运行方式**：`npx harness-studio` 启动本地服务，浏览器访问
 
 ## 架构
 
@@ -88,7 +88,7 @@ nodes:
 
 ```
 ┌──────────────────────────────────────────────┐
-│  claude-studio                          [设置]    │
+│  harness-studio                          [设置]    │
 ├────────┬─────────────────────┬───────────────┤
 │        │                     │               │
 │ 资源   │   Workflow DAG      │   属性面板     │

@@ -3,8 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import type { ApiResponse } from '@/types/resources';
-import { fileExists } from '@/lib/file-ops';
-import { scanProjectById } from '@/lib/project-scanner';
+import { fileExists } from '@studio-core/file-ops';
+import { scanProjectById } from '@studio-core/project-scanner';
 
 type RouteParams = { params: Promise<{ id: string }> };
 

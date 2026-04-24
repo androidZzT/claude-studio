@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/api-client';
 
 interface CommunityLink {
   readonly name: string;
@@ -22,7 +23,7 @@ export function useCommunityLinks(): UseCommunityLinksResult {
 
     async function fetchLinks() {
       try {
-        const res = await fetch('/api/community');
+        const res = await apiFetch('/api/community');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: CommunityLink[] = await res.json();
         if (!cancelled) {

@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import chokidar, { type FSWatcher } from 'chokidar';
 import path from 'node:path';
-import { getClaudeHome } from '@/lib/claude-home';
-import { getSettingsPath } from '@/lib/resource-paths';
+import { getClaudeHome } from '@studio-core/claude-home';
+import { getSettingsPath } from '@studio-core/resource-paths';
 import type { ResourceType } from '@/types/resources';
 
 // Prevent unhandled errors from crashing the process
 if (typeof process !== 'undefined' && !(process as NodeJS.Process & { __claudeStudioGuarded?: boolean }).__claudeStudioGuarded) {
   (process as NodeJS.Process & { __claudeStudioGuarded?: boolean }).__claudeStudioGuarded = true;
   process.on('uncaughtException', (err) => {
-    console.error('[claude-studio] uncaughtException (kept alive):', err);
+    console.error('[harness-studio] uncaughtException (kept alive):', err);
   });
   process.on('unhandledRejection', (reason) => {
-    console.error('[claude-studio] unhandledRejection (kept alive):', reason);
+    console.error('[harness-studio] unhandledRejection (kept alive):', reason);
   });
 }
 
@@ -56,7 +56,7 @@ function getOrCreateWatcher(): FSWatcher {
   });
 
   w.on('error', (err) => {
-    console.error('[claude-studio] chokidar error:', err);
+    console.error('[harness-studio] chokidar error:', err);
   });
 
   w.on('all', (event: string, filePath: string) => {

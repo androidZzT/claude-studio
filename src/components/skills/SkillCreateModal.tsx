@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { X, FileText, LayoutTemplate, Wand2, Loader2 } from 'lucide-react';
 import { SKILL_TEMPLATES, type SkillTemplate } from '@/lib/skill-templates';
+import { apiFetch } from '@/lib/api-client';
 import { SkillTemplateCard } from './SkillTemplateCard';
 import { SkillForm } from './SkillForm';
 
@@ -90,7 +91,7 @@ function SkillCreateModalInner({ onClose, onCreate, saving }: SkillCreateModalIn
     setAiError(null);
 
     try {
-      const res = await fetch('/api/generate', {
+      const res = await apiFetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'skill', description: trimmed }),

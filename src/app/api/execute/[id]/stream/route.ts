@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { getExecution } from '@/lib/execution-engine';
-import type { ExecutionEvent } from '@/lib/execution-engine';
+import { getExecution } from '@studio-core/execution-engine';
+import type { ExecutionEvent } from '@studio-core/execution-engine';
 
 export async function GET(
   _request: NextRequest,

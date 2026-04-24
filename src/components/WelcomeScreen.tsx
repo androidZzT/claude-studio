@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { FolderOpen, Sparkles, Clock, ExternalLink } from 'lucide-react';
 import type { RecentProject } from '@/lib/use-projects';
+import { getPublicAssetUrl } from '@/lib/vscode-webview';
 
 interface WelcomeScreenProps {
   readonly recentProjects: readonly RecentProject[];
@@ -30,7 +31,7 @@ export function WelcomeScreen({
           onMouseLeave={() => setIsHovered(false)}
         >
           <Image
-            src={isHovered ? '/clawd-happy.png' : '/clawd-idle.png'}
+            src={isHovered ? getPublicAssetUrl('/clawd-happy.png') : getPublicAssetUrl('/clawd-idle.png')}
             alt="Clawd mascot"
             width={72}
             height={72}
@@ -43,7 +44,7 @@ export function WelcomeScreen({
           />
         </div>
         <h1 className="mb-2 text-3xl font-bold tracking-tight text-accent">
-          claude-studio
+          harness-studio
         </h1>
         <p className="mb-10 text-sm text-muted">
           Visual Orchestration for Claude Code Agent Teams

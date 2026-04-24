@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
 import type { Resource } from '@/types/resources';
 import type { DagNodeData } from '@/lib/workflow-to-flow';
+import { apiFetch } from '@/lib/api-client';
 import { useProjectManagement } from '@/lib/use-project-management';
 import { useWorkflowState } from '@/lib/use-workflow-state';
 import { useResources } from '@/lib/use-resources';
@@ -26,6 +27,7 @@ import { OpenProjectModal } from './projects/OpenProjectModal';
 import { NewProjectModal } from './projects/NewProjectModal';
 import { getClaudeHomePath } from '@/lib/client-utils';
 import { ResizeHandle } from './panels/ResizeHandle';
+import { getVscodeWebviewBootstrap } from '@/lib/vscode-webview';
 
 export function Studio() {
   const pm = useProjectManagement();
@@ -42,12 +44,45 @@ export function Studio() {
   }, []);
 
   const wfs = useWorkflowState(pm.activeProject, pm.activeProjectId);
+  const autoOpenBootstrappedRef = useRef(false);
+  const [pendingWorkflowAutoSelect, setPendingWorkflowAutoSelect] = useState<string | null>(null);
 
   // Reset selection when project opens/closes
   const handleOpenProjectFromPath = useCallback(async (projectPath: string) => {
     wfs.resetSelection();
     await pm.handleOpenProjectFromPath(projectPath);
   }, [pm, wfs]);
+
+  useEffect(() => {
+    if (autoOpenBootstrappedRef.current) return;
+    autoOpenBootstrappedRef.current = true;
+
+    const bootstrap = getVscodeWebviewBootstrap();
+    const params = new URLSearchParams(window.location.search);
+    const openProjectPath = bootstrap?.openProjectPath ?? params.get('openProjectPath');
+    const openWorkflowName = bootstrap?.openWorkflowName ?? params.get('openWorkflowName');
+    if (!openProjectPath) return;
+
+    void (async () => {
+      await handleOpenProjectFromPath(openProjectPath);
+      if (openWorkflowName) {
+        setPendingWorkflowAutoSelect(openWorkflowName);
+      }
+    })();
+  }, [handleOpenProjectFromPath]);
+
+  useEffect(() => {
+    if (!pendingWorkflowAutoSelect || !pm.activeProject) return;
+
+    const target = pendingWorkflowAutoSelect.trim();
+    const matched = pm.activeProject.workflows.find(
+      (wf) => wf.name === target || decodeURIComponent(wf.id) === target,
+    );
+    if (!matched) return;
+
+    wfs.handleSelectResource(matched);
+    setPendingWorkflowAutoSelect(null);
+  }, [pendingWorkflowAutoSelect, pm.activeProject, wfs]);
 
   const handleCloseProject = useCallback(() => {
     wfs.resetSelection();
@@ -82,7 +117,7 @@ export function Studio() {
       if (data.description) {
         frontmatter.description = data.description;
       }
-      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents`, {
+      const res = await apiFetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: data.name, content: data.body, frontmatter }),
@@ -102,7 +137,7 @@ export function Studio() {
   const handleDeleteAgent = useCallback(async (agent: Resource) => {
     if (!pm.activeProjectId) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents?name=${encodeURIComponent(agent.name)}`,
         { method: 'DELETE' },
       );
@@ -122,7 +157,7 @@ export function Studio() {
     if (!pm.activeProjectId) return;
     setSkillCreateSaving(true);
     try {
-      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills`, {
+      const res = await apiFetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: data.name, description: data.description, content: data.body }),
@@ -143,7 +178,7 @@ export function Studio() {
   const handleDeleteSkill = useCallback(async (skill: Resource) => {
     if (!pm.activeProjectId) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills?name=${encodeURIComponent(skill.name)}`,
         { method: 'DELETE' },
       );
@@ -163,7 +198,7 @@ export function Studio() {
   const handleDeleteWorkflow = useCallback(async (workflow: Resource) => {
     if (!pm.activeProjectId) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/projects/${encodeURIComponent(pm.activeProjectId)}/workflows?name=${encodeURIComponent(workflow.name)}`,
         { method: 'DELETE' },
       );
@@ -182,7 +217,7 @@ export function Studio() {
   const handleImportAgent = useCallback(async (name: string, content: string) => {
     if (!pm.activeProjectId) return;
     try {
-      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents`, {
+      const res = await apiFetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, content }),
@@ -213,7 +248,7 @@ export function Studio() {
           description = descLine[1].trim().replace(/^['"]|['"]$/g, '');
         }
       }
-      const res = await fetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills`, {
+      const res = await apiFetch(`/api/projects/${encodeURIComponent(pm.activeProjectId)}/skills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, description, content: body }),
@@ -233,7 +268,7 @@ export function Studio() {
   const handleDeleteMemory = useCallback(async (memory: Resource) => {
     if (!memory.path) return;
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/files?path=${encodeURIComponent(memory.path)}`,
         { method: 'DELETE' },
       );
@@ -305,7 +340,7 @@ export function Studio() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-border px-4">
-        <h1 className="text-sm font-semibold tracking-tight">claude-studio</h1>
+        <h1 className="text-sm font-semibold tracking-tight">harness-studio</h1>
         <button
           onClick={() => setSettingsOpen(true)}
           className="rounded px-2 py-1 text-xs text-muted hover:bg-surface-hover hover:text-foreground"

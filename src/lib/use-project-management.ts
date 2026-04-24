@@ -48,14 +48,14 @@ export function useProjectManagement(): UseProjectManagementResult {
 
   const handleOpenProjectFromPath = useCallback(async (projectPath: string) => {
     setOpenError(null);
-    const project = await projectOpen.openProject(projectPath);
+    const { project, error } = await projectOpen.openProject(projectPath);
     if (project) {
       storeProjectId(project.id);
       const updated = addRecentProject(project.path, project.name);
       setRecentProjects(updated);
       setOpenModalOpen(false);
     } else {
-      setOpenError(projectOpen.error ?? 'Failed to open project');
+      setOpenError(error ?? 'Failed to open project');
     }
   }, [projectOpen]);
 
@@ -80,7 +80,7 @@ export function useProjectManagement(): UseProjectManagementResult {
       template: data.template,
     });
     if (project) {
-      const opened = await projectOpen.openProject(project.path);
+      const { project: opened } = await projectOpen.openProject(project.path);
       if (opened) {
         storeProjectId(opened.id);
         const updated = addRecentProject(opened.path, opened.name);
@@ -101,7 +101,7 @@ export function useProjectManagement(): UseProjectManagementResult {
     if (storedId) {
       const decoded = decodeURIComponent(storedId);
       if (decoded.startsWith('/')) {
-        projectOpen.openProject(decoded);
+        void projectOpen.openProject(decoded);
       }
     }
     // Intentionally run only once on mount to restore the last-opened project.

@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-studio",
+  "name": "harness-studio",
   "version": "1.2.8",
   "description": "Visual orchestration platform for Claude Code — manage agents, workflows, skills & rules in ~/.claude/",
   "keywords": [
@@ -11,16 +11,16 @@
     "dag-editor",
     "ai-agents",
     "developer-tools",
-    "claude-code-studio"
+    "harness-studio"
   ],
-  "homepage": "https://github.com/androidZzT/claude-studio",
+  "homepage": "https://github.com/androidZzT/harness-studio",
   "repository": {
     "type": "git",
-    "url": "https://github.com/androidZzT/claude-studio.git"
+    "url": "https://github.com/androidZzT/harness-studio.git"
   },
   "license": "MIT",
   "bin": {
-    "claude-studio": "./bin/cli.mjs"
+    "harness-studio": "./bin/cli.mjs"
   },
   "files": [
     "bin/",
@@ -44,7 +44,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "core:build": "npm --prefix packages/studio-core run build",
+    "vscode:build": "npm run build && npm run core:build && npm --prefix extensions/vscode run build",
+    "vscode:watch": "npm --prefix extensions/vscode run watch"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -66,6 +69,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "playwright": "^1.59.1",
     "puppeteer-core": "^24.40.0",
     "tailwindcss": "^4",
     "typescript": "^5"

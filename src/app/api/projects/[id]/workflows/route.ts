@@ -3,11 +3,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import type { ApiResponse, Resource } from '@/types/resources';
-import { fileExists } from '@/lib/file-ops';
-import { scanProjectById } from '@/lib/project-scanner';
+import { fileExists } from '@studio-core/file-ops';
+import { scanProjectById } from '@studio-core/project-scanner';
+import { formatWorkflowDocument, parseWorkflowDocument } from '@studio-core/workflow-document';
 import { sanitizeFileName } from '@/lib/sanitize';
 
 type RouteParams = { params: Promise<{ id: string }> };
+const LEGACY_WORKFLOW_EXTS = ['.yaml', '.yml'] as const;
 
 async function getProjectWorkflowsDir(projectId: string): Promise<string | null> {
   if (projectId === 'global') {
@@ -61,24 +63,38 @@ export async function POST(
     }
     await fs.mkdir(workflowsDir, { recursive: true });
 
-    const fileName = `${safeName}.yaml`;
+    const fileName = `${safeName}.md`;
     const filePath = path.join(workflowsDir, fileName);
 
-    if (await fileExists(filePath)) {
+    const conflictCandidates = [
+      filePath,
+      ...LEGACY_WORKFLOW_EXTS.map((ext) => path.join(workflowsDir, `${safeName}${ext}`)),
+    ];
+    const existsAny = await Promise.all(conflictCandidates.map(fileExists));
+    if (existsAny.some(Boolean)) {
       return NextResponse.json(
         { success: false, error: `Workflow already exists: ${safeName}` },
         { status: 409 }
       );
     }
 
-    await fs.writeFile(filePath, body.content, 'utf-8');
+    const parsed = parseWorkflowDocument(body.content);
+    if (!parsed) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid workflow content: expected YAML or markdown with YAML block' },
+        { status: 400 }
+      );
+    }
+
+    const formattedContent = formatWorkflowDocument(parsed as unknown as Record<string, unknown>);
+    await fs.writeFile(filePath, formattedContent, 'utf-8');
 
     const resource: Resource = {
       id: encodeURIComponent(body.name),
       type: 'workflows',
       name: body.name,
       path: filePath,
-      content: body.content,
+      content: formattedContent,
     };
 
     return NextResponse.json({ success: true, data: resource }, { status: 201 });
@@ -121,16 +137,20 @@ export async function DELETE(
       );
     }
 
-    const filePath = path.join(workflowsDir, `${safeName}.yaml`);
-
-    if (!(await fileExists(filePath))) {
+    const candidates = [
+      path.join(workflowsDir, `${safeName}.md`),
+      ...LEGACY_WORKFLOW_EXTS.map((ext) => path.join(workflowsDir, `${safeName}${ext}`)),
+    ];
+    const existing = await Promise.all(candidates.map(async (p) => ((await fileExists(p)) ? p : null)));
+    const targetPath = existing.find((p): p is string => p !== null);
+    if (!targetPath) {
       return NextResponse.json(
         { success: false, error: `Workflow not found: ${workflowName}` },
         { status: 404 }
       );
     }
 
-    await fs.unlink(filePath);
+    await fs.unlink(targetPath);
     return NextResponse.json({ success: true, data: null });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete workflow';
@@ -174,17 +194,32 @@ export async function PUT(
     }
     await fs.mkdir(workflowsDir, { recursive: true });
 
-    const fileName = `${safeNamePut}.yaml`;
+    const fileName = `${safeNamePut}.md`;
     const filePath = path.join(workflowsDir, fileName);
 
-    await fs.writeFile(filePath, body.content, 'utf-8');
+    const parsed = parseWorkflowDocument(body.content);
+    if (!parsed) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid workflow content: expected YAML or markdown with YAML block' },
+        { status: 400 }
+      );
+    }
+
+    const formattedContent = formatWorkflowDocument(parsed as unknown as Record<string, unknown>);
+    await fs.writeFile(filePath, formattedContent, 'utf-8');
+    for (const ext of LEGACY_WORKFLOW_EXTS) {
+      const legacyPath = path.join(workflowsDir, `${safeNamePut}${ext}`);
+      if (await fileExists(legacyPath)) {
+        await fs.unlink(legacyPath);
+      }
+    }
 
     const resource: Resource = {
       id: encodeURIComponent(body.name),
       type: 'workflows',
       name: body.name,
       path: filePath,
-      content: body.content,
+      content: formattedContent,
     };
 
     return NextResponse.json({ success: true, data: resource });

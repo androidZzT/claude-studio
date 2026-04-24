@@ -5,7 +5,7 @@ import {
   readProjectSettings,
   writeProjectSharedSettings,
   writeProjectLocalSettings,
-} from '@/lib/file-ops';
+} from '@studio-core/file-ops';
 import type { ApiResponse } from '@/types/resources';
 
 export async function GET(

@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="docs/welcome.png" width="720" alt="claude-studio" style="border-radius: 16px;">
-  <h1>claude-studio</h1>
+  <img src="docs/welcome.png" width="720" alt="harness-studio" style="border-radius: 16px;">
+  <h1>harness-studio</h1>
   <p><strong>Claude Code Agent Teams 的可视化编排平台。</strong></p>
   <p><em>通过直观的 DAG 编辑器设计、管理和执行多 Agent 工作流。</em></p>
 
   <p>
-    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/v/claude-code-studio?color=blue&style=flat-square&logo=npm" alt="npm"></a>
-    <a href="https://www.npmjs.com/package/claude-code-studio"><img src="https://img.shields.io/npm/dm/claude-code-studio?color=green&style=flat-square" alt="Downloads"></a>
-    <a href="https://github.com/androidZzT/claude-studio/stargazers"><img src="https://img.shields.io/github/stars/androidZzT/claude-studio?style=flat-square" alt="Stars"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/androidZzT/claude-studio?style=flat-square" alt="License"></a>
+    <a href="https://www.npmjs.com/package/harness-studio"><img src="https://img.shields.io/npm/v/harness-studio?color=blue&style=flat-square&logo=npm" alt="npm"></a>
+    <a href="https://www.npmjs.com/package/harness-studio"><img src="https://img.shields.io/npm/dm/harness-studio?color=green&style=flat-square" alt="Downloads"></a>
+    <a href="https://github.com/androidZzT/harness-studio/stargazers"><img src="https://img.shields.io/github/stars/androidZzT/harness-studio?style=flat-square" alt="Stars"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/androidZzT/harness-studio?style=flat-square" alt="License"></a>
     <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform">
   </p>
 
@@ -73,35 +73,54 @@
 ## 快速开始
 
 ```bash
-npx claude-code-studio
+npx harness-studio
 ```
 
 自定义端口：
 
 ```bash
-npx claude-code-studio --port 3200
+npx harness-studio --port 3200
 ```
 
 ### 开发模式
 
 ```bash
-git clone https://github.com/androidZzT/claude-studio.git
-cd claude-studio
+git clone https://github.com/androidZzT/harness-studio.git
+cd harness-studio
 npm install
 npm run dev -- -p 3100
 ```
+
+### VS Code 插件（MVP）
+
+仓库内新增了一个基础版 VS Code 插件，目录在 `extensions/vscode`。
+
+```bash
+npm install
+npm --prefix extensions/vscode install
+npm run vscode:build
+```
+
+然后在 VS Code 打开 `extensions/vscode`，按 `F5` 启动 Extension Development Host。
+命令面板可使用：
+
+- `Harness Studio: Start Server`
+- `Harness Studio: Open`
+- `Harness Studio: Show Logs`
+
+如果要持续开发扩展，可以在仓库根目录运行 `npm run vscode:watch`。
 
 ---
 
 ## 使用流程
 
-claude-studio 是 `~/.claude/` 目录的 GUI —— 与 Claude Code 运行时读取的是同一个目录。你在 studio 中创建的一切都直接写入 `.claude/` 标准文件：
+harness-studio 是 `~/.claude/` 目录的 GUI —— 与 Claude Code 运行时读取的是同一个目录。你在 studio 中创建的一切都直接写入 `.claude/` 标准文件：
 
 | 在 studio 中创建 | 保存为 | Claude Code 识别为 |
 |---|---|---|
 | Agent | `.claude/agents/name.md` | Agent 定义（可通过 `Agent` 工具调度） |
 | Skill | `.claude/skills/name.md` | 斜杠命令（`/skill-name`） |
-| Workflow | `.claude/workflows/name.yaml` | 团队编排蓝图 |
+| Workflow | `.claude/workflows/name.md` | 团队编排蓝图（Markdown 文件中保存 YAML 内容） |
 | CLAUDE.md 编辑 | `CLAUDE.md` | 项目指令 |
 | 设置 | `.claude/settings.json` | MCP 服务器、Hook、权限 |
 
@@ -120,10 +139,10 @@ claude-studio 是 `~/.claude/` 目录的 GUI —— 与 Claude Code 运行时读
 
 ### 与 CLAUDE.md 的联动
 
-保存工作流时，claude-studio 会**自动同步**到 `CLAUDE.md`。这意味着 Claude Code 启动时自动看到你的团队结构、Agent 角色和工作流定义。你在 studio 中可视化设计团队，Claude Code 负责执行。
+保存工作流时，harness-studio 会**自动同步**到 `CLAUDE.md`。这意味着 Claude Code 启动时自动看到你的团队结构、Agent 角色和工作流定义。你在 studio 中可视化设计团队，Claude Code 负责执行。
 
 ```
-claude-studio (设计) → ~/.claude/ (文件) → Claude Code (运行)
+harness-studio (设计) → ~/.claude/ (文件) → Claude Code (运行)
 ```
 
 ---
@@ -143,6 +162,9 @@ claude-studio (设计) → ~/.claude/ (文件) → Claude Code (运行)
 ```
 
 技术栈: Next.js · React Flow v12 · Monaco Editor · TypeScript · Tailwind CSS · Lucide Icons
+
+架构正在迁移到 `studio-core` + adapter 模型，见：
+[docs/studio-core-migration.md](docs/studio-core-migration.md)。
 
 ## 边类型
 

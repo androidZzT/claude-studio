@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { SettingsData } from '@/types/settings';
 import { parseSettingsData } from '@/types/settings';
+import { apiFetch } from './api-client';
 
 interface ProjectSettingsResult {
   readonly shared: SettingsData | null;
@@ -31,7 +32,7 @@ export function useProjectSettings(projectPath: string | undefined): ProjectSett
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/settings?scope=project&projectPath=${encodeURIComponent(projectPath)}`
       );
       const json = await res.json() as {
@@ -61,7 +62,7 @@ export function useProjectSettings(projectPath: string | undefined): ProjectSett
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/settings?scope=project-shared&projectPath=${encodeURIComponent(projectPath)}`,
         {
           method: 'PUT',
@@ -94,7 +95,7 @@ export function useProjectSettings(projectPath: string | undefined): ProjectSett
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/settings?scope=project-local&projectPath=${encodeURIComponent(projectPath)}`,
         {
           method: 'PUT',

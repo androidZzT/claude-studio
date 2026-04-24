@@ -21,6 +21,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { LayoutGrid } from 'lucide-react';
 import type { Resource, Workflow } from '@/types/resources';
+import { apiFetch } from '@/lib/api-client';
 import {
   workflowToFlow,
   type DagNodeData,
@@ -384,7 +385,7 @@ function WorkflowCanvasInner({
       const yamlContent = workflowToYaml(wf);
       const pid = projectId ?? 'global';
       const method = isNewWorkflow ? 'POST' : 'PUT';
-      const res = await fetch(`/api/projects/${pid}/workflows`, {
+      const res = await apiFetch(`/api/projects/${pid}/workflows`, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: workflowName, content: yamlContent }),
@@ -396,7 +397,7 @@ function WorkflowCanvasInner({
 
         // Non-blocking: sync workflow reference line to CLAUDE.md
         const workflowLine = workflowToClaudeMdLine(wf);
-        fetch(`/api/projects/${pid}/claudemd`, {
+        apiFetch(`/api/projects/${pid}/claudemd`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ workflowName: wf.name, workflowLine }),
@@ -458,7 +459,7 @@ function WorkflowCanvasInner({
       setGenerateError(null);
       try {
         const availableAgents = agents.map((a) => a.name);
-        const res = await fetch('/api/generate', {
+        const res = await apiFetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'workflow', description, agents: availableAgents, skills: [...skillNames] }),

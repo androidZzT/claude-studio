@@ -25,7 +25,7 @@ interface WorkflowToolbarProps {
 }
 
 function downloadBlob(content: string, filename: string): void {
-  const blob = new Blob([content], { type: 'application/x-yaml' });
+  const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -64,7 +64,7 @@ export function WorkflowToolbar({
       edges,
     );
     const yamlContent = workflowToYaml(wf);
-    const filename = `${sanitizeFilename(workflowName)}.yaml`;
+    const filename = `${sanitizeFilename(workflowName)}.md`;
     downloadBlob(yamlContent, filename);
   }, [workflowName, workflowDescription, nodes, edges]);
 
@@ -108,7 +108,7 @@ export function WorkflowToolbar({
         onClick={handleExport}
         disabled={nodes.length === 0}
         className={nodes.length > 0 ? btnBase : btnDisabled}
-        title="Export workflow as YAML"
+        title="Export workflow as Markdown (YAML content)"
       >
         <span className="flex items-center gap-1"><FileOutput size={12} /> Export</span>
       </button>

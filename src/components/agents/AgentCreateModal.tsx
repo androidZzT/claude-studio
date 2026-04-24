@@ -9,6 +9,7 @@ import {
   AGENT_MODELS,
   type AgentTemplate,
 } from '@/lib/agent-templates';
+import { apiFetch } from '@/lib/api-client';
 import { AgentTemplateCard } from './AgentTemplateCard';
 import { AgentForm } from './AgentForm';
 
@@ -102,7 +103,7 @@ function AgentCreateModalInner({ onClose, onCreate, saving }: AgentCreateModalIn
     setAiError(null);
 
     try {
-      const res = await fetch('/api/generate', {
+      const res = await apiFetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'agent', description: trimmed }),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Project } from '@/types/resources';
+import { apiFetch, isVscodeBridgeEnabled, pickDirectoryViaVscodeBridge } from './api-client';
 
 const STORAGE_KEY = 'claude-studio:activeProjectId';
 const RECENT_KEY = 'claude-studio:recentProjects';
@@ -71,6 +72,11 @@ export interface OpenProjectResult {
   readonly loading: boolean;
 }
 
+export interface OpenProjectResponse {
+  readonly project: Project | null;
+  readonly error: string | null;
+}
+
 export function useProjectOpen() {
   const [result, setResult] = useState<OpenProjectResult>({
     project: null,
@@ -78,10 +84,10 @@ export function useProjectOpen() {
     loading: false,
   });
 
-  const openProject = useCallback(async (projectPath: string): Promise<Project | null> => {
+  const openProject = useCallback(async (projectPath: string): Promise<OpenProjectResponse> => {
     setResult({ project: null, error: null, loading: true });
     try {
-      const res = await fetch('/api/projects/open', {
+      const res = await apiFetch('/api/projects/open', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: projectPath }),
@@ -89,14 +95,15 @@ export function useProjectOpen() {
       const json = await res.json() as { success: boolean; data?: Project; error?: string };
       if (json.success && json.data) {
         setResult({ project: json.data, error: null, loading: false });
-        return json.data;
+        return { project: json.data, error: null };
       }
-      setResult({ project: null, error: json.error ?? 'Failed to open project', loading: false });
-      return null;
+      const error = json.error ?? 'Failed to open project';
+      setResult({ project: null, error, loading: false });
+      return { project: null, error };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Network error';
       setResult({ project: null, error: msg, loading: false });
-      return null;
+      return { project: null, error: msg };
     }
   }, []);
 
@@ -132,7 +139,7 @@ export function useBrowseDirectories() {
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/projects/browse?prefix=${encodeURIComponent(prefix)}`);
+      const res = await apiFetch(`/api/projects/browse?prefix=${encodeURIComponent(prefix)}`);
       const json = await res.json() as { success: boolean; data?: { entries: readonly string[] } };
       if (json.success && json.data) {
         setEntries(json.data.entries);
@@ -159,7 +166,18 @@ export function usePickDirectory() {
   const pickDirectory = useCallback(async (): Promise<string | null> => {
     setLoading(true);
     try {
-      const res = await fetch('/api/projects/pick-directory', { method: 'POST' });
+      if (isVscodeBridgeEnabled()) {
+        try {
+          const pickedByHost = await pickDirectoryViaVscodeBridge();
+          if (pickedByHost) {
+            return pickedByHost;
+          }
+        } catch {
+          // Fall through to server-side picker route.
+        }
+      }
+
+      const res = await apiFetch('/api/projects/pick-directory', { method: 'POST' });
       const json = await res.json() as { success: boolean; data?: { path: string }; error?: string };
       if (json.success && json.data) {
         return json.data.path;
@@ -191,7 +209,7 @@ export function useCreateProject() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/projects/create', {
+      const res = await apiFetch('/api/projects/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
@@ -226,7 +244,7 @@ export function useProjectDetail(projectId: string | null) {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`/api/projects/${encodeURIComponent(id)}`);
+      const res = await apiFetch(`/api/projects/${encodeURIComponent(id)}`);
       const json = await res.json() as { success: boolean; data?: Project; error?: string };
       if (json.success) {
         setProject(json.data ?? null);

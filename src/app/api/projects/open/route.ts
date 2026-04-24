@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'node:path';
 import os from 'node:os';
-import { scanProjectAtPath } from '@/lib/project-scanner';
-import { fileExists } from '@/lib/file-ops';
+import { scanProjectAtPath } from '@studio-core/project-scanner';
+import { fileExists } from '@studio-core/file-ops';
+import { expandHome } from '@studio-core/path-utils';
 import type { ApiResponse, Project } from '@/types/resources';
 
 interface OpenRequest {
   readonly path: string;
+}
+
+function isPathWithin(basePath: string, targetPath: string): boolean {
+  const relative = path.relative(path.resolve(basePath), path.resolve(targetPath));
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
 export async function POST(
@@ -22,11 +28,11 @@ export async function POST(
       );
     }
 
-    const projectPath = path.resolve(body.path.replace(/\/+$/, ''));
+    const projectPath = path.resolve(expandHome(body.path).replace(/\/+$/, ''));
     const homeDir = os.homedir();
 
     // Security: reject paths outside home directory and block traversal
-    if (!projectPath.startsWith(homeDir)) {
+    if (!isPathWithin(homeDir, projectPath)) {
       return NextResponse.json(
         { success: false, error: 'Path not allowed: must be within home directory' },
         { status: 403 },

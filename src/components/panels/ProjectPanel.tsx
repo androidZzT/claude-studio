@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { GripVertical, Plus, Trash2, FileInput } from 'lucide-react';
 import type { Project, Resource, Workflow } from '@/types/resources';
 import { validateWorkflow } from '@/lib/workflow-validation';
+import { parseWorkflowDocument } from '@/lib/workflow-document';
 import type { RecentProject } from '@/lib/use-projects';
 import { ProjectSelector } from './ProjectSelector';
 import { AuxiliarySection } from './AuxiliarySection';
@@ -593,11 +594,14 @@ function WorkflowsSection({
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async () => {
+      reader.onload = () => {
         const text = reader.result as string;
         try {
-          const yaml = await import('js-yaml');
-          const parsed = yaml.load(text) as unknown;
+          const parsed = parseWorkflowDocument(text);
+          if (!parsed) {
+            window.alert('Failed to parse workflow document. Expected YAML or Markdown with a YAML code block.');
+            return;
+          }
           const validation = validateWorkflow(parsed);
           if (!validation.valid) {
             window.alert(
@@ -609,7 +613,7 @@ function WorkflowsSection({
         } catch (err) {
           const message =
             err instanceof Error ? err.message : 'Unknown parse error';
-          window.alert(`Failed to parse YAML:\n${message}`);
+          window.alert(`Failed to parse workflow document:\n${message}`);
         }
       };
       reader.readAsText(file);
@@ -676,14 +680,14 @@ function WorkflowsSection({
         <button
           onClick={handleImportClick}
           className="flex-1 rounded px-3 py-0.5 text-left text-xs text-accent/70 hover:bg-surface-hover hover:text-accent transition-colors"
-          title="Import workflow from YAML file"
+          title="Import workflow from Markdown/YAML file"
         >
           <span className="flex items-center gap-1"><FileInput size={12} /> Import</span>
         </button>
         <input
           ref={importInputRef}
           type="file"
-          accept=".yaml,.yml"
+          accept=".md,.yaml,.yml"
           onChange={handleImportFile}
           className="hidden"
         />

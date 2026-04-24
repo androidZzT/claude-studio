@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import yaml from 'js-yaml';
 import type { Resource, Workflow } from '@/types/resources';
+import { apiFetch, isVscodeBridgeEnabled } from '@/lib/api-client';
 import { validateWorkflow } from '@/lib/workflow-validation';
 import { workflowToClaudeMdLine } from '@/lib/workflow-to-claudemd';
+import { parseWorkflowDocument } from '@/lib/workflow-document';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react').then((m) => m.default), {
   ssr: false,
@@ -45,6 +46,7 @@ function useMonacoTheme(): string {
 
 export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: ResourceEditorProps) {
   const monacoTheme = useMonacoTheme();
+  const usePlainTextEditor = isVscodeBridgeEnabled();
   const [value, setValue] = useState(resource.content);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -71,16 +73,14 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
 
     // Validate workflow YAML before saving
     if (resource.type === 'workflows') {
-      try {
-        const parsed = yaml.load(value);
-        const result = validateWorkflow(parsed);
-        if (!result.valid) {
-          setValidationErrors(result.errors);
-          return;
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Invalid YAML';
-        setValidationErrors([`YAML parse error: ${message}`]);
+      const parsed = parseWorkflowDocument(value);
+      if (!parsed) {
+        setValidationErrors(['Invalid workflow document: expected YAML or markdown with a YAML code block']);
+        return;
+      }
+      const result = validateWorkflow(parsed);
+      if (!result.valid) {
+        setValidationErrors(result.errors);
         return;
       }
     }
@@ -115,7 +115,7 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
         payload = { content: value, frontmatter: resource.frontmatter };
       }
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,22 +129,20 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
         // Sync workflow reference to CLAUDE.md (best-effort)
         if (resource.type === 'workflows' && projectId) {
           try {
-            const parsed = yaml.load(value);
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            const parsed = parseWorkflowDocument(value);
+            if (parsed) {
               const wf = parsed as Workflow;
-              if (wf.name && wf.description !== undefined) {
-                const workflowLine = workflowToClaudeMdLine(wf);
-                fetch(`/api/projects/${projectId}/claudemd`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ workflowName: wf.name, workflowLine }),
-                }).catch(() => {
-                  // CLAUDE.md sync is best-effort
-                });
-              }
+              const workflowLine = workflowToClaudeMdLine(wf);
+              apiFetch(`/api/projects/${projectId}/claudemd`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workflowName: wf.name, workflowLine }),
+              }).catch(() => {
+                // CLAUDE.md sync is best-effort
+              });
             }
           } catch {
-            // YAML parse error during sync — skip silently
+            // Workflow parse error during sync — skip silently
           }
         }
       } else {
@@ -161,7 +159,7 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
     }
   }, [dirty, saving, value, resource, onSave, projectId]);
 
-  const language = resource.type === 'workflows' ? 'yaml' : 'markdown';
+  const language = 'markdown';
 
   return (
     <div className="flex h-full flex-col">
@@ -206,22 +204,32 @@ export function ResourceEditor({ resource, onSave, fontSize = 12, projectId }: R
 
       {/* Monaco Editor */}
       <div className="flex-1">
-        <MonacoEditor
-          height="100%"
-          language={language}
-          theme={monacoTheme}
-          value={value}
-          onChange={handleChange}
-          options={{
-            minimap: { enabled: false },
-            fontSize,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            wordWrap: 'on',
-            tabSize: 2,
-            padding: { top: 8 },
-          }}
-        />
+        {usePlainTextEditor ? (
+          <textarea
+            value={value}
+            onChange={(event) => handleChange(event.target.value)}
+            spellCheck={false}
+            className="h-full w-full resize-none border-0 bg-background px-3 py-2 font-mono text-foreground outline-none"
+            style={{ fontSize, lineHeight: 1.6 }}
+          />
+        ) : (
+          <MonacoEditor
+            height="100%"
+            language={language}
+            theme={monacoTheme}
+            value={value}
+            onChange={handleChange}
+            options={{
+              minimap: { enabled: false },
+              fontSize,
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
+              tabSize: 2,
+              padding: { top: 8 },
+            }}
+          />
+        )}
       </div>
     </div>
   );
