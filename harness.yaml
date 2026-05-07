@@ -1,0 +1,27 @@
+name: harness-cli
+scope: project
+version: 0.1.0
+
+tools:
+  - codex
+
+env:
+  required:
+    - cmd: node
+      min: "20.0.0"
+      install: "nvm install 22 && nvm use 22"
+    - cmd: npm
+    - cmd: git
+    - cmd: sqlite3
+
+canonical:
+  instructions: ./AGENTS.md.template
+  codexConfig: ./.codex/config.toml.template
+
+adapters:
+  codex:
+    enabled: true
+    target: .
+    features:
+      - agents-md
+      - codex-config-toml

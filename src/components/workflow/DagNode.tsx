@@ -19,11 +19,15 @@ function executionClassName(executionStatus: ExecutionNodeStatus | null | undefi
     case 'running':
       return 'preview-node-pulse border-blue-400 bg-blue-500/10';
     case 'done':
+    case 'succeeded':
       return 'border-green-500/60 bg-green-500/5 transition-colors duration-300';
     case 'failed':
       return 'border-red-500/60 bg-red-500/5 transition-colors duration-300';
     case 'waiting-checkpoint':
+    case 'blocked':
       return 'preview-checkpoint-pulse border-amber-400 bg-amber-500/15';
+    case 'skipped':
+      return 'opacity-50 border-slate-500/50 bg-slate-500/5 transition-opacity duration-300';
     case 'cancelled':
       return 'opacity-30 transition-opacity duration-300';
     default:
@@ -38,10 +42,12 @@ function executionIcon(executionStatus: ExecutionNodeStatus | null | undefined) 
     case 'running':
       return <Loader2 size={10} className="animate-spin text-blue-400" />;
     case 'done':
+    case 'succeeded':
       return <CheckCircle2 size={10} className="text-green-400" />;
     case 'failed':
       return <XCircle size={10} className="text-red-400" />;
     case 'waiting-checkpoint':
+    case 'blocked':
       return <AlertCircle size={10} className="text-amber-400" />;
     default:
       return null;
@@ -103,7 +109,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
     if (skillRaw) {
       try {
         const { name } = JSON.parse(skillRaw) as { name: string };
-        window.dispatchEvent(new CustomEvent('claude-studio:bind-skill', {
+        window.dispatchEvent(new CustomEvent('harness-studio:bind-skill', {
           detail: { nodeId: data.nodeId, skillName: name },
         }));
       } catch { /* ignore */ }
@@ -114,7 +120,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
     if (mcpRaw) {
       try {
         const { name } = JSON.parse(mcpRaw) as { name: string };
-        window.dispatchEvent(new CustomEvent('claude-studio:bind-mcp', {
+        window.dispatchEvent(new CustomEvent('harness-studio:bind-mcp', {
           detail: { nodeId: data.nodeId, mcpName: name },
         }));
       } catch { /* ignore */ }
@@ -147,6 +153,7 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
       </div>
       <div className="text-muted">
         <span className="text-accent/80">{data.agent}</span>
+        {data.tool && <span className="ml-1 text-muted/60">via {data.tool}</span>}
       </div>
 
       {data.task ? (
@@ -202,9 +209,19 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
               <ShieldCheck size={10} /> checkpoint
             </span>
           )}
+          {typeof data.toolCallCount === 'number' && (
+            <span className="rounded bg-sky-500/10 px-1 py-0.5 text-[10px] text-sky-300">
+              {data.toolCallCount} tools
+            </span>
+          )}
+          {typeof data.skillUseCount === 'number' && data.skillUseCount > 0 && (
+            <span className="rounded bg-emerald-500/10 px-1 py-0.5 text-[10px] text-emerald-300">
+              {data.skillUseCount} skills
+            </span>
+          )}
         </div>
         <span className="ml-auto text-[10px] text-muted/50">
-          {inCount} in &middot; {outCount} out
+          {formatDuration(data.durationMs) ?? `${inCount} in / ${outCount} out`}
         </span>
       </div>
     </div>
@@ -212,3 +229,13 @@ function DagNodeInner({ data, selected }: DagNodeProps) {
 }
 
 export const DagNode = memo(DagNodeInner);
+
+function formatDuration(durationMs: number | undefined): string | null {
+  if (typeof durationMs !== 'number' || !Number.isFinite(durationMs)) return null;
+  if (durationMs < 1000) return `${Math.round(durationMs)}ms`;
+  const seconds = Math.round(durationMs / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest > 0 ? `${minutes}m ${rest}s` : `${minutes}m`;
+}

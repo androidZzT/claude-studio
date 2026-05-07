@@ -4,6 +4,7 @@ import type { ApiResponse } from '@/types/resources';
 import { callClaude, stripMarkdownFences } from '@/lib/claude-cli';
 import { buildWorkflowPrompt, buildAgentPrompt, buildSkillPrompt } from '@/lib/generate-prompts';
 import { validateWorkflow } from '@/lib/workflow-validation';
+import { parseWorkflowDocument } from '@studio-core/workflow-document';
 
 type GenerateType = 'workflow' | 'agent' | 'skill';
 
@@ -39,14 +40,17 @@ type GenerateResult = WorkflowResult | AgentResult | SkillResult;
 
 function parseWorkflowOutput(raw: string): WorkflowResult {
   const cleaned = stripMarkdownFences(raw);
-  const parsed = yaml.load(cleaned) as Record<string, unknown>;
+  const parsed = parseWorkflowDocument(cleaned);
+  if (!parsed) {
+    throw new Error('Failed to parse workflow output as YAML or workflow markdown');
+  }
 
   const validation = validateWorkflow(parsed);
   if (!validation.valid) {
     throw new Error(`Invalid workflow: ${validation.errors.join('; ')}`);
   }
 
-  return { type: 'workflow', workflow: parsed };
+  return { type: 'workflow', workflow: parsed as unknown as Record<string, unknown> };
 }
 
 function parseAgentOutput(raw: string): AgentResult {

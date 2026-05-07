@@ -1,0 +1,1162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness.dev/schema/harness.schema.json",
+  "title": "HarnessConfig",
+  "type": "object",
+  "$defs": {
+    "toolName": {
+      "type": "string",
+      "enum": ["claude-code", "codex", "cursor", "aider", "gemini-cli"]
+    },
+    "modelProfile": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "effort": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sandbox_mode": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_policy": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "toolModels": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/modelProfile"
+        },
+        "agents": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/modelProfile"
+          },
+          "default": {}
+        }
+      }
+    },
+    "projectPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "git_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "lang": {
+          "type": "string",
+          "minLength": 1
+        },
+        "module_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "commands": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "contextVisibilityRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["soft_ignore", "deny_read"],
+          "default": "deny_read"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": ["name"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [1, 2]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["global", "project"]
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/toolName"
+      },
+      "default": []
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["cmd"],
+                "properties": {
+                  "cmd": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "min": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "install": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["script"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "script": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "install": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "default": []
+        }
+      }
+    },
+    "canonical": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "instructions": {
+          "type": "string",
+          "minLength": 1,
+          "default": "./AGENTS.md.template"
+        },
+        "codexConfig": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "agent_tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/toolName",
+          "default": "claude-code"
+        },
+        "agents": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/toolName"
+          },
+          "default": {}
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/toolName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/toolModels"
+      }
+    },
+    "projects": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "references": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/projectPath"
+          },
+          "default": {}
+        },
+        "targets": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/projectPath"
+          },
+          "default": {}
+        }
+      }
+    },
+    "dispatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["match", "agent"],
+            "properties": {
+              "match": {
+                "type": "string",
+                "minLength": 1
+              },
+              "agent": {
+                "type": "string",
+                "minLength": 1
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "default": []
+        },
+        "cross_platform_policy": {
+          "type": "string",
+          "enum": ["split_serial", "split_isolated_parallel"]
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "no_active_context": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextVisibilityRule"
+          },
+          "default": []
+        }
+      }
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "servers": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "env": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              }
+            }
+          },
+          "default": {}
+        }
+      }
+    },
+    "plugins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["plugins", "enabledPlugins"],
+          "default": "plugins"
+        },
+        "marketplaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "source"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(github:|https?://|git\\+|file:)"
+              },
+              "autoUpdate": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "default": []
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": ["user", "project", "local"],
+                    "default": "user"
+                  }
+                }
+              }
+            ]
+          },
+          "default": []
+        }
+      }
+    },
+    "reference_projects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projects"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projects": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "git_url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "minProperties": 1
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pre-commit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["run"],
+          "properties": {
+            "run": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Shell script body written into .git/hooks/pre-commit."
+            },
+            "shell": {
+              "type": "string",
+              "enum": ["bash"],
+              "default": "bash"
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "Elicitation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "Notification": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PermissionRequest": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PostCompact": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PostToolUse": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PostToolUseFailure": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PreCompact": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "PreToolUse": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "SessionEnd": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "SessionStart": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "Stop": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "StopFailure": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "SubagentStart": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "SubagentStop": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "TaskCompleted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "UserPromptSubmit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "WorktreeCreate": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run"],
+            "properties": {
+              "matcher": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Command script body rendered into .claude/settings.json hooks."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "statusMessage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        }
+      },
+      "default": {}
+    },
+    "adapters": {
+      "type": "object",
+      "properties": {
+        "claude-code": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1,
+              "default": ".",
+              "description": "Relative output root for Claude Code files such as CLAUDE.md."
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["claude_md", "agents", "commands", "docs", "hooks", "mcp", "plugins", "reference_projects", "rules", "scripts", "skills", "metrics"]
+              }
+            },
+            "agents_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./claude/agents",
+              "description": "Relative source directory for top-level claude-code agent markdown files."
+            },
+            "commands_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./claude/commands",
+              "description": "Relative source directory for top-level claude-code command markdown files."
+            },
+            "docs_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./docs",
+              "description": "Relative source directory for recursive Claude Code docs passthrough trees."
+            },
+            "metrics_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./metrics",
+              "description": "Relative source directory for recursive Claude Code metrics passthrough trees."
+            },
+            "reference_projects_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./reference-project.json",
+              "description": "Relative source file for raw Claude Code reference-project.json passthrough."
+            },
+            "rules_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./claude/rules",
+              "description": "Relative source directory for top-level claude-code rule markdown files."
+            },
+            "scripts_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./claude/scripts",
+              "description": "Relative source directory for recursive claude-code helper script trees."
+            },
+            "skills_source": {
+              "type": "string",
+              "minLength": 1,
+              "default": "./claude/skills",
+              "description": "Relative source directory for recursive claude-code skill directory trees."
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            }
+          }
+        },
+        "codex": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1,
+              "default": "."
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            }
+          }
+        },
+        "cursor": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1,
+              "default": ".",
+              "description": "Relative output root for Cursor files such as .cursor/rules/main.mdc."
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            }
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "default": []
+          }
+        }
+      },
+      "default": {}
+    }
+  }
+}

@@ -15,6 +15,7 @@ interface CommunityLink {
 }
 
 const COMMUNITY_REPOS: readonly CommunityRepo[] = [
+  { name: 'Harness-Studio', owner: 'androidZzT', repo: 'harness-studio', fallbackStars: 0 },
   { name: 'Awesome Claude Code', owner: 'hesreallyhim', repo: 'awesome-claude-code', fallbackStars: 37000 },
   { name: 'Agent Templates', owner: 'VoltAgent', repo: 'awesome-claude-code-subagents', fallbackStars: 17000 },
   { name: 'Skills Collection', owner: 'alirezarezvani', repo: 'claude-skills', fallbackStars: 10000 },

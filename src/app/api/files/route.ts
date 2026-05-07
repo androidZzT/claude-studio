@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import matter from 'gray-matter';
 import type { ApiResponse } from '@/types/resources';
-import { fileExists } from '@/lib/file-ops';
+import { fileExists } from '@studio-core/file-ops';
 
 const CLAUDE_DIR = `${os.homedir()}/.claude/`;
 

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import type { ApiResponse } from '@/types/resources';
-import { expandHome } from '@/lib/path-utils';
+import { expandHome } from '@studio-core/path-utils';
 
 interface BrowseResult {
   readonly entries: readonly string[];

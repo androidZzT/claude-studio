@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { scanProjectById } from '@/lib/project-scanner';
+import { scanProjectById } from '@studio-core/project-scanner';
 import type { ApiResponse, Project } from '@/types/resources';
 
 export async function GET(

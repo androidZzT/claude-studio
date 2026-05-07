@@ -158,21 +158,21 @@ export function CanvasContextMenu({
     setShowAgentList(false);
   }, [state]);
 
-  if (!state) return null;
-
   const handleAddNodeClick = useCallback(() => {
     setShowAgentList(true);
   }, []);
 
   const handleAgentSelect = useCallback(
     (agent: AgentOption) => {
-      if (state?.kind === 'canvas') {
+      if (state && state.kind === 'canvas') {
         onAddNode(agent, state.flowPosition);
       }
       onClose();
     },
     [state, onAddNode, onClose]
   );
+
+  if (!state) return null;
 
   return (
     <div

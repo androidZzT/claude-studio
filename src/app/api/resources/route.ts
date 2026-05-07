@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listResourceFiles } from '@/lib/file-ops';
+import { listResourceFiles } from '@studio-core/file-ops';
 import type { ResourceType, ApiResponse, Resource } from '@/types/resources';
 
 const FILE_BASED_TYPES: ResourceType[] = ['agents', 'workflows', 'skills', 'rules'];

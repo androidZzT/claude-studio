@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { SettingsData } from '@/types/settings';
 import { parseSettingsData } from '@/types/settings';
+import { apiFetch } from './api-client';
 
 interface UseSettingsResult {
   readonly settings: SettingsData | null;
@@ -23,7 +24,7 @@ export function useSettings(): UseSettingsResult {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/settings');
+      const res = await apiFetch('/api/settings');
       const json = await res.json();
       if (json.success) {
         setSettings(parseSettingsData(json.data as Record<string, unknown>));
@@ -45,7 +46,7 @@ export function useSettings(): UseSettingsResult {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch('/api/settings', {
+      const res = await apiFetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

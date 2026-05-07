@@ -1,6 +1,2 @@
-import path from 'node:path';
-import os from 'node:os';
+export { getClaudeHome } from '@studio-core/claude-home';
 
-export function getClaudeHome(): string {
-  return process.env.CLAUDE_HOME ?? path.join(os.homedir(), '.claude');
-}

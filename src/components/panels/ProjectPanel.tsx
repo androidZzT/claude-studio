@@ -4,12 +4,14 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { GripVertical, Plus, Trash2, FileInput } from 'lucide-react';
 import type { Project, Resource, Workflow } from '@/types/resources';
 import { validateWorkflow } from '@/lib/workflow-validation';
+import { parseWorkflowDocument } from '@/lib/workflow-document';
 import type { RecentProject } from '@/lib/use-projects';
 import { ProjectSelector } from './ProjectSelector';
 import { AuxiliarySection } from './AuxiliarySection';
 import { CommunityLinks } from './CommunityLinks';
 import { CollapsibleSection, StaticSectionHeader } from './SectionHeader';
 import { WORKFLOW_TEMPLATES } from '@/lib/workflow-templates';
+import type { VisualWorkflowRunSummary } from '@/types/visual-workflow';
 
 interface ProjectPanelProps {
   readonly activeProject: Project | null;
@@ -18,12 +20,16 @@ interface ProjectPanelProps {
   readonly auxiliaryResources: readonly Resource[];
   readonly mcpServerNames?: readonly string[];
   readonly selectedId: string | null;
+  readonly visualRuns?: readonly VisualWorkflowRunSummary[];
+  readonly selectedVisualRunId?: string | null;
+  readonly visualRunsLoading?: boolean;
   readonly onOpenProject: () => void;
   readonly onNewProject: () => void;
   readonly onCloseProject: () => void;
   readonly onSelectRecent: (path: string) => void;
   readonly onRemoveRecent: (path: string) => void;
   readonly onSelectResource: (resource: Resource) => void;
+  readonly onSelectVisualRun?: (runId: string) => void;
   readonly onSelectClaudeMd: (project: Project) => void;
   readonly onCreateWorkflow: (project: Project, template?: Workflow) => void;
   readonly onDeleteWorkflow?: (workflow: Resource) => void;
@@ -44,12 +50,16 @@ export function ProjectPanel({
   auxiliaryResources,
   mcpServerNames = [],
   selectedId,
+  visualRuns = [],
+  selectedVisualRunId = null,
+  visualRunsLoading = false,
   onOpenProject,
   onNewProject,
   onCloseProject,
   onSelectRecent,
   onRemoveRecent,
   onSelectResource,
+  onSelectVisualRun,
   onSelectClaudeMd,
   onCreateWorkflow,
   onDeleteWorkflow,
@@ -107,6 +117,15 @@ export function ProjectPanel({
         )}
 
         {!activeProjectLoading && activeProject && (
+          <VisualRunsSection
+            runs={visualRuns}
+            selectedRunId={selectedVisualRunId}
+            loading={visualRunsLoading}
+            onSelectRun={onSelectVisualRun}
+          />
+        )}
+
+        {!activeProjectLoading && activeProject && (
           <ActiveProjectContent
             project={activeProject}
             selectedId={selectedId}
@@ -136,6 +155,73 @@ export function ProjectPanel({
       </div>
     </nav>
   );
+}
+
+interface VisualRunsSectionProps {
+  readonly runs: readonly VisualWorkflowRunSummary[];
+  readonly selectedRunId: string | null;
+  readonly loading: boolean;
+  readonly onSelectRun?: (runId: string) => void;
+}
+
+function VisualRunsSection({ runs, selectedRunId, loading, onSelectRun }: VisualRunsSectionProps) {
+  return (
+    <CollapsibleSection label="Runs" count={runs.length}>
+      {loading && <p className="px-3 py-1 text-[10px] text-muted/60">Loading runs...</p>}
+      {!loading && runs.length === 0 && (
+        <p className="px-3 py-1 text-[10px] text-muted/60">No .harness runs</p>
+      )}
+      {!loading && runs.length > 0 && (
+        <ul className="flex flex-col">
+          {runs.map((run) => (
+            <li key={run.runId}>
+              <button
+                onClick={() => onSelectRun?.(run.runId)}
+                className={`group w-full rounded px-3 py-1 text-left text-xs transition-colors ${
+                  selectedRunId === run.runId
+                    ? 'bg-accent/20 text-accent font-medium'
+                    : 'text-foreground/70 hover:bg-surface-hover'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${runStatusDot(run.status)}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{run.runId}</span>
+                    <span className="block truncate text-[9px] text-muted/60">
+                      {run.nodeCount} nodes
+                      {run.failedNodeCount > 0 ? ` / ${run.failedNodeCount} failed` : ''}
+                      {run.startedAt ? ` / ${formatShortDate(run.startedAt)}` : ''}
+                    </span>
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CollapsibleSection>
+  );
+}
+
+function runStatusDot(status: VisualWorkflowRunSummary['status']): string {
+  switch (status) {
+    case 'succeeded':
+      return 'bg-green-400';
+    case 'failed':
+      return 'bg-red-400';
+    case 'blocked':
+      return 'bg-amber-400';
+    case 'running':
+      return 'bg-sky-400';
+    default:
+      return 'bg-muted';
+  }
+}
+
+function formatShortDate(value: string): string {
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return value;
+  return new Date(time).toLocaleDateString();
 }
 
 interface ActiveProjectContentProps {
@@ -593,11 +679,14 @@ function WorkflowsSection({
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async () => {
+      reader.onload = () => {
         const text = reader.result as string;
         try {
-          const yaml = await import('js-yaml');
-          const parsed = yaml.load(text) as unknown;
+          const parsed = parseWorkflowDocument(text);
+          if (!parsed) {
+            window.alert('Failed to parse workflow document. Expected YAML or Markdown with a YAML code block.');
+            return;
+          }
           const validation = validateWorkflow(parsed);
           if (!validation.valid) {
             window.alert(
@@ -609,7 +698,7 @@ function WorkflowsSection({
         } catch (err) {
           const message =
             err instanceof Error ? err.message : 'Unknown parse error';
-          window.alert(`Failed to parse YAML:\n${message}`);
+          window.alert(`Failed to parse workflow document:\n${message}`);
         }
       };
       reader.readAsText(file);
@@ -676,14 +765,14 @@ function WorkflowsSection({
         <button
           onClick={handleImportClick}
           className="flex-1 rounded px-3 py-0.5 text-left text-xs text-accent/70 hover:bg-surface-hover hover:text-accent transition-colors"
-          title="Import workflow from YAML file"
+          title="Import workflow from Markdown/YAML file"
         >
           <span className="flex items-center gap-1"><FileInput size={12} /> Import</span>
         </button>
         <input
           ref={importInputRef}
           type="file"
-          accept=".yaml,.yml"
+          accept=".md,.yaml,.yml"
           onChange={handleImportFile}
           className="hidden"
         />

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listResourceFiles, writeResourceFile, deleteResourceFile } from '@/lib/file-ops';
+import { listResourceFiles, writeResourceFile, deleteResourceFile } from '@studio-core/file-ops';
 import type { ResourceType, ApiResponse, Resource } from '@/types/resources';
 
 const VALID_TYPES = new Set<string>(['agents', 'workflows', 'skills', 'rules']);

@@ -1,0 +1,108 @@
+# harness-studio Agent Guide
+
+## Project Overview
+
+harness-studio 是跨平台 harness 环境管理平台：用一份 Harness 工程管理 agents、skills、rules、MCP、hooks、workflow、run telemetry，并投影到 Claude Code、Codex、Cursor 等工具的原生配置。
+
+本仓是 monorepo：Studio 负责可视化控制面，`packages/core` 和 `packages/cli` 承接从 harness-cli 合并进来的数据面能力。不要在 Studio UI/API 里重新实现执行语义；真实 autonomous run、trajectory、validation、rollback 以 harness CLI/core 和 `.harness/runs` 为事实源。
+
+## Reference Documents
+
+`docs/` 不是任何 AI 工具的自动加载路径。需要 agent 阅读的设计 / 调研文档必须在这里显式登记。新增文档时同步更新本节。
+
+### Product And Studio
+
+- [docs/product/positioning.md](./docs/product/positioning.md) — 产品定位：跨 Claude Code / Codex / Cursor 的 harness 环境管理、run store、Studio 与 CLI 边界。
+- [docs/architecture/studio-core-migration.md](./docs/architecture/studio-core-migration.md) — Studio Core 分层迁移记录：Next API、VS Code bridge、`studio-core` 的边界。
+- [docs/architecture/package-boundaries.md](./docs/architecture/package-boundaries.md) — `packages/core` 与 `packages/studio-core` 的职责边界。
+- [docs/guides/demo-script.md](./docs/guides/demo-script.md) — 演示录屏脚本。
+
+### Harness CLI/Core
+
+- [docs/harness-cli/README.md](./docs/harness-cli/README.md) — CLI 用户入口：Spec Sync、Autonomous Execution、KM Design 工作流。
+- [docs/harness-cli/architecture/autonomous-execution.md](./docs/harness-cli/architecture/autonomous-execution.md) — autonomous multi-phase execution 设计。
+- [docs/harness-cli/architecture/eval-trajectory.md](./docs/harness-cli/architecture/eval-trajectory.md) — trajectory 捕获、解析、EvalLog 适配设计。
+- [docs/harness-cli/architecture/harness-as-code-roadmap.md](./docs/harness-cli/architecture/harness-as-code-roadmap.md) — Harness as Code 路线图与指标飞轮。
+- [docs/harness-cli/architecture/sailor-harness-multi-tool-routing.md](./docs/harness-cli/architecture/sailor-harness-multi-tool-routing.md) — Sailor harness 多工具 / 多 agent 路由设计。
+- [docs/harness-cli/research/multi-platform-research.zh-CN.md](./docs/harness-cli/research/multi-platform-research.zh-CN.md) — Claude Code / Codex / Cursor 能力对比。
+- [docs/harness-cli/research/eval-harness-best-practices.md](./docs/harness-cli/research/eval-harness-best-practices.md) — eval harness 最佳实践调研。
+- [docs/harness-cli/history/plan.md](./docs/harness-cli/history/plan.md) — 原 harness-cli 总体规划归档。
+- [docs/harness-cli/history/stages/](./docs/harness-cli/history/stages/) — Stage 0/1/2 开发过程设计记录归档；仅在追溯旧实现决策时阅读。
+
+### When To Read What
+
+- 调整产品定位、README、Studio/CLI 边界前，先读 `docs/product/positioning.md`。
+- 调整 run store 可视化、VisualWorkflow、trajectory inspector 前，先读 `docs/harness-cli/architecture/eval-trajectory.md` 与 `docs/harness-cli/architecture/autonomous-execution.md`。
+- 调整 Claude Code / Codex / Cursor adapter 能力前，先读 `docs/harness-cli/research/multi-platform-research.zh-CN.md`，必要时再查 `docs/harness-cli/history/stages/`。
+- 调整 eval ingest、parser、funnel scorer 前，先读 `docs/harness-cli/architecture/eval-trajectory.md`、`docs/harness-cli/research/eval-harness-best-practices.md` 和相关 stage 归档。
+- 调整 `harness init/sync/adopt` 或 generated ownership 语义前，先读 `docs/harness-cli/README.md`，再查对应 stage 归档。
+
+## Tech Stack & Constraints
+
+- Runtime: Node.js 20+ LTS，推荐 Node 22。
+- Language: TypeScript strict mode，ESM 输出。
+- Package layout: npm workspaces monorepo，包含 Studio Web、VS Code extension、`packages/studio-core`、`packages/core` 和 `packages/cli`。
+- Tests: Harness CLI/Core 使用 Vitest；Studio 侧用类型检查、构建和 visual workflow fixture 做质量门。
+- Lint: 根工程保留 ESLint；Harness CLI/Core 的严格边界优先由 TypeScript 与测试守住。
+- Build: `npm run harness:build`、`npm run core:build`、`npm run build`，端到端用 `npm run monorepo:build`。
+- Validation: 所有外部输入都必须通过 `zod` 校验。
+
+## Coding Rules
+
+- 不可变优先：返回新对象，不原地修改入参。
+- 小文件：单文件尽量不超过 400 行；单函数尽量不超过 50 行。
+- 显式错误：`core` 层抛具名错误；`cli` 层统一兜底输出错误并返回非零退出码。
+- 严禁隐式 `any`：保持 `strict`、`noImplicitAny`、`strictNullChecks` 开启。
+- 避免 magic string：命令名、路径片段、字段名优先集中到 `constants.ts`。
+- 日志分层：仅使用 `debug` / `info` / `warn` / `error`。
+- Secrets 只能来自环境变量或显式参数，禁止硬编码。
+
+## Architecture Rules
+
+- `packages/cli` 可以依赖 `packages/core`，反向依赖禁止。
+- `packages/core/src/adapters/claude-code/*` 不能直接 import `packages/core/src/adapters/codex/*`，反之亦然。
+- `packages/core/src/reconciler/*` 不能 import adapter 内部实现；只能通过 adapter 注册接口。
+- 架构边界要保持在代码评审和测试中可验证；不要把执行语义重新塞回 Studio UI/API。
+
+## Dev Workflow
+
+1. 激活 Node 20+ 环境后运行 `npm install`。
+2. 开发 CLI/Core 前先跑 `npm run harness:typecheck` 和相关 Vitest。
+3. 开发前先写测试，再写最小实现，再重构。
+4. 本地提交前运行 `npm run harness:test`、`npm run verify:visual-workflow` 和必要的 Web/VS Code 构建。
+5. 准备合并前运行 `npm run monorepo:build`。
+
+## Testing Requirements
+
+- 每新增一个 CLI 命令或核心函数，先写测试再实现。
+- 工作顺序固定为 RED -> GREEN -> IMPROVE。
+- 如果改动影响 CLI/Core 行为，优先补 Vitest 回归；如恢复 coverage 脚本，覆盖率门槛继续保持 80%+。
+- 修复 bug 时必须补回归测试。
+
+## Quality Gates
+
+- `npm run harness:typecheck`
+- `npm run harness:test`
+- `npm run verify:visual-workflow`
+- `npm run monorepo:build`
+- `npm run vscode:build`（改动 VS Code extension 时）
+
+## Git / PR Conventions
+
+- Commit 使用 Conventional Commits，例如 `feat:`, `fix:`, `chore:`。
+- PR 保持小而清晰，正文说明变更、测试和风险。
+- 提交前不要把生成物和本地缓存混入变更。
+
+## Security
+
+- 禁止提交 `.env`, `.env.*`, `*.pem`, `*.key`, `*.p12`, `*.crt`。
+- 不要把 access token、cookie、数据库文件写入仓库。
+- 对外部输入、配置文件、上游 marketplace 响应统一做 schema 校验。
+
+## Prohibited Changes
+
+- 不要引入 `.claude/hooks`、plugin 自动安装 / cache 管理、`permissions` 自动管理或 `.claude/settings.json` 中 harness 未声明 ownership 的 Claude Code 专有字段；当前允许 `CLAUDE.md`、`.claude/agents/*.md`、`.claude/commands/*.md`、`.claude/rules/*.md`、`.claude/scripts/**`、`.claude/skills/**`、`.claude/reference-project.json` 与 `.claude/settings.json` 的 partial ownership（`hooks`、`mcpServers`、`marketplaces`、`plugins`、`enabledPlugins`）。
+- 不要引入任何 ECC 插件依赖。
+- 不要手改 `dist/`。
+- 不要禁用架构 lint 或 coverage 门槛。
+- 不要写“后续优化再补”的占位代码或 TODO 空壳文件。

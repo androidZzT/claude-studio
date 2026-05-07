@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.harness.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "packages/core/src/**/*.ts",
+    "packages/cli/src/**/*.ts"
+  ]
+}

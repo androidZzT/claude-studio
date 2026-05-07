@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build harness-studio extension",
+      "type": "shell",
+      "command": "npm run vscode:build",
+      "options": {
+        "cwd": "${workspaceFolder}/../.."
+      },
+      "problemMatcher": []
+    }
+  ]
+}

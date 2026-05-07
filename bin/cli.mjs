@@ -16,7 +16,7 @@ if (portIdx !== -1 && args[portIdx + 1]) {
   port = parseInt(args[portIdx + 1], 10);
 }
 
-console.log(`\n  ◆ claude-studio\n  Starting on http://localhost:${port}\n`);
+console.log(`\n  ◆ harness-studio\n  Starting on http://localhost:${port}\n`);
 
 // Install deps if needed
 if (!existsSync(resolve(projectRoot, 'node_modules'))) {

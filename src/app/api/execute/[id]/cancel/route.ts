@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getExecution } from '@/lib/execution-engine';
+import { getExecution } from '@studio-core/execution-engine';
 import type { ApiResponse } from '@/types/resources';
 
 export async function POST(

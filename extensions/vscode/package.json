@@ -1,0 +1,128 @@
+{
+  "name": "harness-studio-vscode",
+  "displayName": "Harness-Studio",
+  "description": "Manage cross-platform harness environments and multi-agent workflow runs inside VS Code.",
+  "version": "0.2.0",
+  "publisher": "androidzzt",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/androidZzT/harness-studio.git"
+  },
+  "homepage": "https://github.com/androidZzT/harness-studio",
+  "bugs": {
+    "url": "https://github.com/androidZzT/harness-studio/issues"
+  },
+  "keywords": [
+    "harness",
+    "codex",
+    "cursor",
+    "claude-code",
+    "workflow",
+    "dag",
+    "agents",
+    "studio"
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:harnessStudio.start",
+    "onCommand:harnessStudio.open",
+    "onCommand:harnessStudio.showLogs",
+    "onCommand:harnessStudio.openDagForActiveWorkflowFile"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "harnessStudio.start",
+        "title": "Harness-Studio: Start Server"
+      },
+      {
+        "command": "harnessStudio.open",
+        "title": "Harness-Studio: Open"
+      },
+      {
+        "command": "harnessStudio.showLogs",
+        "title": "Harness-Studio: Show Logs"
+      },
+      {
+        "command": "harnessStudio.openDagForActiveWorkflowFile",
+        "title": "Harness-Studio: Open DAG For Current Workflow"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "harnessStudio.openDagForActiveWorkflowFile",
+          "when": "resourceExtname == .md",
+          "group": "navigation@10"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "harnessStudio.openDagForActiveWorkflowFile",
+          "when": "resourceExtname == .md",
+          "group": "navigation@10"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Harness-Studio",
+      "properties": {
+        "harnessStudio.serverUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:3100",
+          "description": "Harness-Studio server URL opened by the extension."
+        },
+        "harnessStudio.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start Harness-Studio when opening if not reachable."
+        },
+        "harnessStudio.openMode": {
+          "type": "string",
+          "enum": ["webview", "nativePreview", "simpleBrowser", "external"],
+          "default": "webview",
+          "description": "How Harness-Studio is opened inside VS Code. `webview` loads the full local Studio UI without starting a local server."
+        },
+        "harnessStudio.startCommand": {
+          "type": "string",
+          "default": "npx harness-studio --port {port}",
+          "description": "Shell command used to start harness-studio. Supports placeholders: {port}, {url}."
+        },
+        "harnessStudio.startupTimeoutMs": {
+          "type": "number",
+          "default": 45000,
+          "minimum": 5000,
+          "description": "How long to wait for Harness-Studio to become reachable after startup (ms)."
+        },
+        "harnessStudio.autoOpenWorkflowOnFileOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-open Harness-Studio DAG webview when a .claude/workflows/*.md file is focused."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "typecheck": "tsc -p ./tsconfig.json --noEmit",
+    "bundle": "node ./scripts/build.mjs",
+    "build": "npm run clean && npm run typecheck && npm run bundle",
+    "watch": "node ./scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "@harness-studio/studio-core": "file:../../packages/studio-core",
+    "@types/node": "^20.17.0",
+    "@types/vscode": "^1.95.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.6.3"
+  }
+}

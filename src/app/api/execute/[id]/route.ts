@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getExecution } from '@/lib/execution-engine';
+import { getExecution } from '@studio-core/execution-engine';
 import type { ApiResponse } from '@/types/resources';
-import type { ExecutionState } from '@/lib/execution-engine';
+import type { ExecutionState } from '@studio-core/execution-engine';
 
 export async function GET(
   _request: NextRequest,

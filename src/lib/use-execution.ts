@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Workflow } from '@/types/resources';
+import { apiFetch, createApiEventStream, type ApiEventStream } from './api-client';
 import type { ExecutionState, ExecutionEvent, NodeExecutionStatus } from './execution-engine';
 
 export type { ExecutionState, NodeExecutionStatus };
@@ -31,13 +32,13 @@ export function useExecution(): UseExecutionResult {
   const [executionState, setExecutionState] = useState<ExecutionState | null>(null);
   const [logs, setLogs] = useState<readonly string[]>([]);
   const executionIdRef = useRef<string | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const eventStreamRef = useRef<ApiEventStream | null>(null);
 
   // Cleanup SSE connection
   const closeStream = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    if (eventStreamRef.current) {
+      eventStreamRef.current.close();
+      eventStreamRef.current = null;
     }
   }, []);
 
@@ -48,94 +49,9 @@ export function useExecution(): UseExecutionResult {
   const connectToStream = useCallback((executionId: string) => {
     closeStream();
 
-    const es = new EventSource(`/api/execute/${executionId}/stream`);
-    eventSourceRef.current = es;
-
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as SSEMessage;
-
-        if (data.type === 'init' || data.type === 'final') {
-          setExecutionState(data.state);
-
-          if (data.type === 'final') {
-            setExecuting(false);
-            closeStream();
-          }
-          return;
-        }
-
-        // ExecutionEvent — apply incremental state updates from SSE events directly
-        const execEvent = data as ExecutionEvent;
-
-        if (execEvent.message) {
-          const MAX_LOG_ENTRIES = 500;
-          setLogs((prev) => {
-            const next = [...prev, `[${execEvent.timestamp}] ${execEvent.message}`];
-            return next.length > MAX_LOG_ENTRIES ? next.slice(-MAX_LOG_ENTRIES) : next;
-          });
-        }
-
-        if (execEvent.type === 'node-status' && execEvent.nodeId && execEvent.nodeStatus) {
-          setExecutionState((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              nodes: prev.nodes.map((n) =>
-                n.nodeId === execEvent.nodeId
-                  ? { ...n, status: execEvent.nodeStatus! }
-                  : n
-              ),
-            };
-          });
-        }
-
-        // Streaming output from live execution — append to node output
-        if (execEvent.type === 'node-output' && execEvent.nodeId && execEvent.output) {
-          setExecutionState((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              nodes: prev.nodes.map((n) =>
-                n.nodeId === execEvent.nodeId
-                  ? { ...n, output: (n.output ?? '') + execEvent.output }
-                  : n
-              ),
-            };
-          });
-        }
-
-        if (execEvent.type === 'level-start' && execEvent.level !== undefined) {
-          setExecutionState((prev) => {
-            if (!prev) return prev;
-            return { ...prev, currentLevel: execEvent.level! };
-          });
-        }
-
-        if (execEvent.type === 'execution-status' && execEvent.overallStatus) {
-          setExecutionState((prev) => {
-            if (!prev) return prev;
-            return { ...prev, status: execEvent.overallStatus! };
-          });
-        }
-
-        if (
-          execEvent.type === 'execution-status' &&
-          (execEvent.overallStatus === 'completed' ||
-            execEvent.overallStatus === 'failed' ||
-            execEvent.overallStatus === 'cancelled')
-        ) {
-          setExecuting(false);
-          closeStream();
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    };
-
-    es.onerror = () => {
+    const handleStreamError = () => {
       // On error, try to get final state
-      fetch(`/api/execute/${executionId}`)
+      apiFetch(`/api/execute/${executionId}`)
         .then((res) => res.json())
         .then((json: { success: boolean; data?: ExecutionState }) => {
           if (json.success && json.data) {
@@ -152,6 +68,96 @@ export function useExecution(): UseExecutionResult {
         });
       closeStream();
     };
+
+    const stream = createApiEventStream(`/api/execute/${executionId}/stream`, {
+      onMessage: (raw) => {
+        try {
+          const data = JSON.parse(raw) as SSEMessage;
+
+          if (data.type === 'init' || data.type === 'final') {
+            setExecutionState(data.state);
+
+            if (data.type === 'final') {
+              setExecuting(false);
+              closeStream();
+            }
+            return;
+          }
+
+          // ExecutionEvent — apply incremental state updates from SSE events directly
+          const execEvent = data as ExecutionEvent;
+
+          if (execEvent.message) {
+            const MAX_LOG_ENTRIES = 500;
+            setLogs((prev) => {
+              const next = [...prev, `[${execEvent.timestamp}] ${execEvent.message}`];
+              return next.length > MAX_LOG_ENTRIES ? next.slice(-MAX_LOG_ENTRIES) : next;
+            });
+          }
+
+          if (execEvent.type === 'node-status' && execEvent.nodeId && execEvent.nodeStatus) {
+            setExecutionState((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                nodes: prev.nodes.map((n) =>
+                  n.nodeId === execEvent.nodeId
+                    ? { ...n, status: execEvent.nodeStatus! }
+                    : n
+                ),
+              };
+            });
+          }
+
+          // Streaming output from live execution — append to node output
+          if (execEvent.type === 'node-output' && execEvent.nodeId && execEvent.output) {
+            setExecutionState((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                nodes: prev.nodes.map((n) =>
+                  n.nodeId === execEvent.nodeId
+                    ? { ...n, output: (n.output ?? '') + execEvent.output }
+                    : n
+                ),
+              };
+            });
+          }
+
+          if (execEvent.type === 'level-start' && execEvent.level !== undefined) {
+            setExecutionState((prev) => {
+              if (!prev) return prev;
+              return { ...prev, currentLevel: execEvent.level! };
+            });
+          }
+
+          if (execEvent.type === 'execution-status' && execEvent.overallStatus) {
+            setExecutionState((prev) => {
+              if (!prev) return prev;
+              return { ...prev, status: execEvent.overallStatus! };
+            });
+          }
+
+          if (
+            execEvent.type === 'execution-status' &&
+            (execEvent.overallStatus === 'completed' ||
+              execEvent.overallStatus === 'failed' ||
+              execEvent.overallStatus === 'cancelled')
+          ) {
+            setExecuting(false);
+            closeStream();
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      },
+      onError: handleStreamError,
+      onEnd: () => {
+        // Stream ended: allow final event path to settle state.
+      },
+    });
+
+    eventStreamRef.current = stream;
   }, [closeStream]);
 
   const startExecution = useCallback(async (workflow: Workflow, projectPath?: string, simulate = true) => {
@@ -160,7 +166,7 @@ export function useExecution(): UseExecutionResult {
     setExecutionState(null);
 
     try {
-      const res = await fetch('/api/execute', {
+      const res = await apiFetch('/api/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -203,7 +209,7 @@ export function useExecution(): UseExecutionResult {
     if (!execId) return;
 
     try {
-      await fetch(`/api/execute/${execId}/checkpoint/${nodeId}`, {
+      await apiFetch(`/api/execute/${execId}/checkpoint/${nodeId}`, {
         method: 'POST',
       });
     } catch (error) {
@@ -216,7 +222,7 @@ export function useExecution(): UseExecutionResult {
     if (!execId) return;
 
     try {
-      await fetch(`/api/execute/${execId}/cancel`, {
+      await apiFetch(`/api/execute/${execId}/cancel`, {
         method: 'POST',
       });
     } catch (error) {
