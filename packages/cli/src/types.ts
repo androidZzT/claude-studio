@@ -12,7 +12,12 @@ export interface CliIo {
 }
 
 export type Scope = "global" | "project";
-export type HelpTopic = "adapters" | "eval" | "init" | "run";
+export type HelpTopic =
+  | "adapters"
+  | "eval"
+  | "init"
+  | "km-page-analysis"
+  | "run";
 export type RunAction = "dry-run" | "inspect" | "view";
 export type CliProviderJudgeTool = ProviderJudgeTool;
 

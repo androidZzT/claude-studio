@@ -14,13 +14,14 @@ export function parseHelpArgs(argv: readonly string[]): ParsedArgs {
     (argv[0] === CLI_COMMANDS.INIT ||
       argv[0] === CLI_COMMANDS.ADAPTERS ||
       argv[0] === CLI_COMMANDS.EVAL ||
+      argv[0] === CLI_COMMANDS.KM_PAGE_ANALYSIS ||
       argv[0] === CLI_COMMANDS.RUN)
   ) {
     return helpArgs(argv[0]);
   }
 
   throw new HarnessError(
-    "Unsupported help topic. Use `harness help`, `harness init --help`, `harness adapters --help`, `harness eval --help`, or `harness run --help`.",
+    "Unsupported help topic. Use `harness help`, `harness init --help`, `harness adapters --help`, `harness eval --help`, `harness km-page-analysis --help`, or `harness run --help`.",
     "CLI_INVALID_HELP_TOPIC",
   );
 }

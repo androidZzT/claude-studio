@@ -1,0 +1,411 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 2160">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap');
+      text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'SF Mono', monospace; }
+      .title { font-size: 20px; font-weight: 700; fill: #f1f5f9; }
+      .section { font-size: 15px; font-weight: 700; }
+      .lane-title { font-size: 12px; font-weight: 600; fill: #f1f5f9; }
+      .name { font-size: 12px; font-weight: 600; fill: #f1f5f9; }
+      .sub { font-size: 9.5px; font-weight: 400; fill: #94a3b8; }
+      .micro { font-size: 8.5px; font-weight: 400; fill: #cbd5e1; }
+      .batch { font-size: 11px; font-weight: 700; fill: #fbbf24; letter-spacing: 1px; }
+      .note { font-size: 9px; font-weight: 400; fill: #fbbf24; }
+    </style>
+
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="40" y="42" class="title">harness-studio 工作流架构图 · 门店页 (store-page) 示例</text>
+  <text x="40" y="62" class="sub">页面级 km-page-analysis  →  模块依赖批次 (DAG)  →  模块级 km-module-design (架构 / 证据 / 测试 三 contributor 并行 + integrator 串行)</text>
+
+  <!-- =================== SECTION 1: km-page-analysis =================== -->
+  <rect x="40" y="90" width="1620" height="320" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="10,4"/>
+  <text x="56" y="113" class="section" fill="#fbbf24">① 页面级工作流  ·  km-page-analysis</text>
+  <text x="56" y="131" class="sub">单 architect Agent · 解析整页 → 拆分模块 → 输出依赖批次  ·  prompt 由 packages/cli/src/km-page-analysis/prompts.ts 生成</text>
+
+  <!-- Inputs (left column) -->
+  <rect x="80" y="160" width="240" height="50" rx="6" fill="#0f172a"/>
+  <rect x="80" y="160" width="240" height="50" rx="6" fill="rgba(30,41,59,0.55)" stroke="#94a3b8" stroke-width="1.3"/>
+  <text x="200" y="183" class="name" text-anchor="middle">business_id / page_id</text>
+  <text x="200" y="200" class="sub" text-anchor="middle">poi-detail / store-page</text>
+
+  <rect x="80" y="222" width="240" height="50" rx="6" fill="#0f172a"/>
+  <rect x="80" y="222" width="240" height="50" rx="6" fill="rgba(30,41,59,0.55)" stroke="#94a3b8" stroke-width="1.3"/>
+  <text x="200" y="245" class="name" text-anchor="middle">machpro 仓库 + commit</text>
+  <text x="200" y="262" class="sub" text-anchor="middle">git rev-parse HEAD</text>
+
+  <rect x="80" y="284" width="240" height="50" rx="6" fill="#0f172a"/>
+  <rect x="80" y="284" width="240" height="50" rx="6" fill="rgba(30,41,59,0.55)" stroke="#94a3b8" stroke-width="1.3"/>
+  <text x="200" y="307" class="name" text-anchor="middle">Android / iOS 现状代码</text>
+  <text x="200" y="324" class="sub" text-anchor="middle">仅读取 · 不修改生产代码</text>
+
+  <rect x="80" y="346" width="240" height="50" rx="6" fill="#0f172a"/>
+  <rect x="80" y="346" width="240" height="50" rx="6" fill="rgba(30,41,59,0.55)" stroke="#94a3b8" stroke-width="1.3"/>
+  <text x="200" y="369" class="name" text-anchor="middle">已有 spec-package</text>
+  <text x="200" y="386" class="sub" text-anchor="middle">作为复用证据</text>
+
+  <!-- Center Agent -->
+  <rect x="600" y="200" width="360" height="170" rx="8" fill="#0f172a"/>
+  <rect x="600" y="200" width="360" height="170" rx="8" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.6"/>
+  <text x="780" y="226" class="name" text-anchor="middle" font-size="14">architect Agent</text>
+  <text x="780" y="244" class="sub" text-anchor="middle">page-analyzer 角色</text>
+  <line x1="630" y1="258" x2="930" y2="258" stroke="#22d3ee" stroke-width="0.6" stroke-opacity="0.5"/>
+  <text x="780" y="278" class="micro" text-anchor="middle">Skill:  skills/molecule/km-page-analysis/SKILL.md</text>
+  <text x="780" y="294" class="micro" text-anchor="middle">Ref:   references/page-analysis-template.md</text>
+  <text x="780" y="316" class="micro" text-anchor="middle" fill="#94a3b8">硬约束: 模块需 source evidence + owner</text>
+  <text x="780" y="332" class="micro" text-anchor="middle" fill="#94a3b8">candidate + layer + spec-pack 路径</text>
+  <text x="780" y="354" class="micro" text-anchor="middle" fill="#fbbf24">batches 自底向上 · 拓扑无环</text>
+
+  <!-- Outputs (right column) -->
+  <rect x="1180" y="178" width="320" height="56" rx="6" fill="#0f172a"/>
+  <rect x="1180" y="178" width="320" height="56" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="1340" y="201" class="name" text-anchor="middle">module_dependency.yaml</text>
+  <text x="1340" y="220" class="sub" text-anchor="middle">拓扑批次 + blocking deps + owner_contract_hint</text>
+
+  <rect x="1180" y="248" width="320" height="56" rx="6" fill="#0f172a"/>
+  <rect x="1180" y="248" width="320" height="56" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="1340" y="271" class="name" text-anchor="middle">page_analysis.md</text>
+  <text x="1340" y="290" class="sub" text-anchor="middle">模块清单 · 证据 · 目标 spec-package 路径</text>
+
+  <rect x="1180" y="318" width="320" height="56" rx="6" fill="#0f172a"/>
+  <rect x="1180" y="318" width="320" height="56" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="1340" y="341" class="name" text-anchor="middle">status/architect.md</text>
+  <text x="1340" y="360" class="sub" text-anchor="middle">done | blocked + 缺失证据列表</text>
+
+  <!-- Section 1 arrows: inputs → agent -->
+  <path d="M 320,185 L 600,235" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 320,247 L 600,265" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 320,309 L 600,295" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 320,371 L 600,335" stroke="#64748b" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Section 1 arrows: agent → outputs -->
+  <path d="M 960,240 L 1180,206" stroke="#a78bfa" stroke-width="1.4" fill="none" marker-end="url(#arrow-violet)"/>
+  <path d="M 960,285 L 1180,276" stroke="#a78bfa" stroke-width="1.4" fill="none" marker-end="url(#arrow-violet)"/>
+  <path d="M 960,330 L 1180,346" stroke="#a78bfa" stroke-width="1.4" fill="none" marker-end="url(#arrow-violet)"/>
+
+  <!-- Section 1 → Section 2 transition arrow -->
+  <path d="M 850,410 L 850,460" stroke="#fbbf24" stroke-width="2" fill="none" marker-end="url(#arrow-amber)" stroke-dasharray="6,3"/>
+  <text x="860" y="438" class="note">module_dependency.yaml 驱动下面的批次调度</text>
+
+  <!-- =================== SECTION 2: 模块依赖批次 DAG =================== -->
+  <rect x="40" y="470" width="1620" height="600" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="10,4"/>
+  <text x="56" y="493" class="section" fill="#fbbf24">② 模块依赖批次 (DAG)  ·  门店页拆解后的拓扑顺序</text>
+  <text x="56" y="511" class="sub">每个 module 节点 = 一次 km-module-design 调度  ·  同批次内可并行  ·  跨批次必须等上游 manifest.status=ready-for-plan</text>
+
+  <!-- Batch labels (left rail) -->
+  <text x="80" y="552" class="batch">BATCH 0</text>
+  <text x="80" y="567" class="sub">叶子层 · 并行</text>
+
+  <text x="80" y="692" class="batch">BATCH 1</text>
+  <text x="80" y="707" class="sub">依赖 batch 0 · 并行</text>
+
+  <text x="80" y="832" class="batch">BATCH 2</text>
+  <text x="80" y="847" class="sub">依赖 batch 1 · 并行</text>
+
+  <text x="80" y="972" class="batch">BATCH 3</text>
+  <text x="80" y="987" class="sub">页面整合 · 串行</text>
+
+  <!-- Batch 0: store-base, business-hours, location -->
+  <!-- order chosen so deps cross less: location | store-base | business-hours -->
+  <rect x="450" y="540" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="450" y="540" width="200" height="80" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="550" y="572" class="name" text-anchor="middle">location</text>
+  <text x="550" y="592" class="sub" text-anchor="middle">地理位置</text>
+  <text x="550" y="608" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <rect x="750" y="540" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="750" y="540" width="200" height="80" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="850" y="572" class="name" text-anchor="middle">store-base</text>
+  <text x="850" y="592" class="sub" text-anchor="middle">门店基础信息</text>
+  <text x="850" y="608" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <rect x="1050" y="540" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="1050" y="540" width="200" height="80" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="1150" y="572" class="name" text-anchor="middle">business-hours</text>
+  <text x="1150" y="592" class="sub" text-anchor="middle">营业时间</text>
+  <text x="1150" y="608" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <!-- Batch 1: store-header, product-list, review-summary -->
+  <!-- store-header is the highlighted (current expanded) module -->
+  <rect x="450" y="680" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="450" y="680" width="200" height="80" rx="6" fill="rgba(59,130,246,0.35)" stroke="#60a5fa" stroke-width="2.2"/>
+  <text x="550" y="712" class="name" text-anchor="middle">store-header ★</text>
+  <text x="550" y="732" class="sub" text-anchor="middle">门店头部</text>
+  <text x="550" y="748" class="sub" text-anchor="middle" fill="#fde68a">↓ 下方展开</text>
+
+  <rect x="750" y="680" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="750" y="680" width="200" height="80" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="850" y="712" class="name" text-anchor="middle">product-list</text>
+  <text x="850" y="732" class="sub" text-anchor="middle">商品列表</text>
+  <text x="850" y="748" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <rect x="1050" y="680" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="1050" y="680" width="200" height="80" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="1150" y="712" class="name" text-anchor="middle">review-summary</text>
+  <text x="1150" y="732" class="sub" text-anchor="middle">评价聚合</text>
+  <text x="1150" y="748" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <!-- Batch 2: coupons, recommendations -->
+  <rect x="600" y="820" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="600" y="820" width="200" height="80" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="700" y="852" class="name" text-anchor="middle">coupons</text>
+  <text x="700" y="872" class="sub" text-anchor="middle">优惠券</text>
+  <text x="700" y="888" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <rect x="900" y="820" width="200" height="80" rx="6" fill="#0f172a"/>
+  <rect x="900" y="820" width="200" height="80" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="1000" y="852" class="name" text-anchor="middle">recommendations</text>
+  <text x="1000" y="872" class="sub" text-anchor="middle">推荐位</text>
+  <text x="1000" y="888" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design</text>
+
+  <!-- Batch 3: store-page-integration -->
+  <rect x="650" y="960" width="400" height="80" rx="6" fill="#0f172a"/>
+  <rect x="650" y="960" width="400" height="80" rx="6" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.8"/>
+  <text x="850" y="992" class="name" text-anchor="middle">store-page-integration</text>
+  <text x="850" y="1010" class="sub" text-anchor="middle">门店页整合 · 聚合所有上游 manifest</text>
+  <text x="850" y="1028" class="sub" text-anchor="middle" fill="#cbd5e1">km-module-design (集成模块形态)</text>
+
+  <!-- Checkpoint badge -->
+  <rect x="1080" y="970" width="280" height="60" rx="30" fill="#0f172a"/>
+  <rect x="1080" y="970" width="280" height="60" rx="30" fill="rgba(136,19,55,0.45)" stroke="#fb7185" stroke-width="1.6" stroke-dasharray="4,3"/>
+  <text x="1220" y="996" class="name" text-anchor="middle">🔒 人工 review gate</text>
+  <text x="1220" y="1015" class="sub" text-anchor="middle">checkpoint = ready-for-plan</text>
+
+  <!-- DAG arrows: Batch 0 → Batch 1 -->
+  <!-- location → store-header -->
+  <path d="M 550,620 L 550,680" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+  <!-- store-base → store-header -->
+  <path d="M 800,620 L 600,680" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+  <!-- store-base → product-list -->
+  <path d="M 850,620 L 850,680" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+  <!-- store-base → review-summary -->
+  <path d="M 900,620 L 1100,680" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+
+  <!-- DAG arrows: Batch 1 → Batch 2 -->
+  <!-- product-list → coupons -->
+  <path d="M 800,760 L 720,820" stroke="#22d3ee" stroke-width="1.4" fill="none" marker-end="url(#arrow-cyan)"/>
+  <!-- product-list → recommendations -->
+  <path d="M 900,760 L 980,820" stroke="#22d3ee" stroke-width="1.4" fill="none" marker-end="url(#arrow-cyan)"/>
+  <!-- review-summary → recommendations -->
+  <path d="M 1100,760 L 1040,820" stroke="#22d3ee" stroke-width="1.4" fill="none" marker-end="url(#arrow-cyan)"/>
+
+  <!-- DAG arrows: Batch 2 → Batch 3 -->
+  <path d="M 720,900 L 800,960" stroke="#fbbf24" stroke-width="1.4" fill="none" marker-end="url(#arrow-amber)"/>
+  <path d="M 980,900 L 900,960" stroke="#fbbf24" stroke-width="1.4" fill="none" marker-end="url(#arrow-amber)"/>
+
+  <!-- Skip-batch dependencies into integration (dashed bus on right) -->
+  <!-- store-header → integration -->
+  <path d="M 650,720 L 1430,720 L 1430,990 L 1050,990" stroke="#fbbf24" stroke-width="1" fill="none" stroke-dasharray="4,3" stroke-opacity="0.55" marker-end="url(#arrow-amber)"/>
+  <!-- business-hours → integration -->
+  <path d="M 1250,580 L 1480,580 L 1480,1010 L 1050,1010" stroke="#fbbf24" stroke-width="1" fill="none" stroke-dasharray="4,3" stroke-opacity="0.55" marker-end="url(#arrow-amber)"/>
+  <text x="1395" y="500" class="note" fill="#fbbf24">跳层依赖 (整合直接消费)</text>
+
+  <!-- Section 2 → Section 3 transition arrow -->
+  <path d="M 550,760 L 550,1080 L 850,1080 L 850,1100" stroke="#60a5fa" stroke-width="2" fill="none" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <text x="560" y="1085" class="note" fill="#60a5fa">★ 展开 store-header 模块的 km-module-design 内部流程</text>
+
+  <!-- =================== SECTION 3: km-module-design expanded =================== -->
+  <rect x="40" y="1110" width="1620" height="1020" rx="12" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="10,4"/>
+  <text x="56" y="1133" class="section" fill="#60a5fa">③ 模块级工作流  ·  km-module-design  —  以 store-header 为例 (其它模块同结构)</text>
+  <text x="56" y="1151" class="sub">prepareWorkflow → 写 prompt + manifest.yaml(draft) → 三 contributor 并行 → architect-integrator 串行整合 → validate → ready-for-plan</text>
+
+  <!-- Init / spec-pack manifest -->
+  <rect x="540" y="1180" width="620" height="70" rx="8" fill="#0f172a"/>
+  <rect x="540" y="1180" width="620" height="70" rx="8" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="850" y="1205" class="name" text-anchor="middle">spec-package/poi-detail/store-header/manifest.yaml</text>
+  <text x="850" y="1224" class="sub" text-anchor="middle">status: draft  ·  contributors.{architect, machpro_parity, tester}.status: blocked</text>
+  <text x="850" y="1240" class="sub" text-anchor="middle" fill="#fbbf24">由 packages/cli/src/km-module-design/workflow.ts 生成</text>
+
+  <!-- Fan-out arrows from manifest to three contributors -->
+  <path d="M 700,1250 L 320,1310" stroke="#22d3ee" stroke-width="1.4" fill="none" marker-end="url(#arrow-cyan)"/>
+  <path d="M 850,1250 L 850,1310" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+  <path d="M 1000,1250 L 1380,1310" stroke="#a78bfa" stroke-width="1.4" fill="none" marker-end="url(#arrow-violet)"/>
+
+  <!-- ===== PARALLEL PHASE BANNER ===== -->
+  <rect x="60" y="1280" width="1580" height="22" rx="3" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="0.8"/>
+  <text x="80" y="1296" class="lane-title" fill="#22d3ee">⫷⫷⫷  并行阶段 (parallel_phase)  —  三个 contributor 同时跑，互不阻塞，写入各自 write scope  ⫸⫸⫸</text>
+
+  <!-- ===== Lane 1: architect ===== -->
+  <rect x="80" y="1320" width="480" height="100" rx="8" fill="#0f172a"/>
+  <rect x="80" y="1320" width="480" height="100" rx="8" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.6"/>
+  <text x="320" y="1346" class="name" text-anchor="middle" font-size="13">architect Agent · contributor</text>
+  <text x="320" y="1366" class="sub" text-anchor="middle">职责: 架构决策 / 状态&amp;数据&amp;UI&amp;布局&amp;导航契约 / 平台生成规则</text>
+  <line x1="100" y1="1378" x2="540" y2="1378" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="320" y="1395" class="micro" text-anchor="middle">Skill:  skills/molecule/km-module-design/SKILL.md</text>
+  <text x="320" y="1411" class="micro" text-anchor="middle">Ref:   references/technical-design-template.md</text>
+
+  <rect x="80" y="1440" width="480" height="280" rx="8" fill="#0f172a"/>
+  <rect x="80" y="1440" width="480" height="280" rx="8" fill="rgba(8,51,68,0.25)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="320" y="1462" class="lane-title" text-anchor="middle">写入文件 (write scope)</text>
+  <text x="100" y="1486" class="micro">📄  architecture_design.md</text>
+  <text x="100" y="1504" class="micro">📄  state_contract.yaml</text>
+  <text x="100" y="1522" class="micro">📄  data_contract.yaml</text>
+  <text x="100" y="1540" class="micro">📄  ui_semantic_tree.yaml</text>
+  <text x="100" y="1558" class="micro">📄  layout_contract.yaml</text>
+  <text x="100" y="1576" class="micro">📄  navigation_contract.yaml</text>
+  <text x="100" y="1594" class="micro">📄  platform_generation_rules.md</text>
+  <text x="100" y="1612" class="micro">📄  status/architect.md</text>
+  <line x1="100" y1="1626" x2="540" y2="1626" stroke="#22d3ee" stroke-width="0.4" stroke-opacity="0.4"/>
+  <text x="100" y="1645" class="micro" fill="#94a3b8">Gates: Reviewed Reference Design / Machpro Evidence</text>
+  <text x="100" y="1661" class="micro" fill="#94a3b8">         Reuse Discovery / Architecture Kernel</text>
+  <text x="100" y="1681" class="micro" fill="#fbbf24">禁写: machpro_inventory / traceability /</text>
+  <text x="100" y="1697" class="micro" fill="#fbbf24">       acceptance_tests / manifest.status</text>
+
+  <!-- ===== Lane 2: machpro-parity ===== -->
+  <rect x="610" y="1320" width="480" height="100" rx="8" fill="#0f172a"/>
+  <rect x="610" y="1320" width="480" height="100" rx="8" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.6"/>
+  <text x="850" y="1346" class="name" text-anchor="middle" font-size="13">machpro-parity Agent · contributor</text>
+  <text x="850" y="1366" class="sub" text-anchor="middle">职责: 提取 machpro 全量事实 / 建立 traceability / 写功能 &amp; 埋点契约</text>
+  <line x1="630" y1="1378" x2="1070" y2="1378" stroke="#34d399" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="850" y="1395" class="micro" text-anchor="middle">Agent: agents/machpro-parity.md</text>
+  <text x="850" y="1411" class="micro" text-anchor="middle">Tools: machpro-evidence-extract · evidence-chain-verify</text>
+
+  <rect x="610" y="1440" width="480" height="280" rx="8" fill="#0f172a"/>
+  <rect x="610" y="1440" width="480" height="280" rx="8" fill="rgba(6,78,59,0.22)" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="850" y="1462" class="lane-title" text-anchor="middle">写入文件 (write scope)</text>
+  <text x="630" y="1486" class="micro">📄  machpro_inventory.md</text>
+  <text x="630" y="1504" class="micro">📄  traceability.yaml</text>
+  <text x="630" y="1522" class="micro">📄  functional_contract.md</text>
+  <text x="630" y="1540" class="micro">📄  analytics_contract.yaml</text>
+  <text x="630" y="1558" class="micro">📄  status/machpro-parity.md</text>
+  <line x1="630" y1="1572" x2="1070" y2="1572" stroke="#34d399" stroke-width="0.4" stroke-opacity="0.4"/>
+  <text x="630" y="1591" class="micro" fill="#94a3b8">证据规则: 每条事实必须有 path:line 引用</text>
+  <text x="630" y="1609" class="micro" fill="#94a3b8">映射 ID 域: NAV-* / ACT-* / STATE-* / UI-* / API-*</text>
+  <text x="630" y="1625" class="micro" fill="#94a3b8">         MODEL-* / RULE-* / TRACK-* / STORAGE-*</text>
+  <text x="630" y="1641" class="micro" fill="#94a3b8">         ERROR-* / TEST-*</text>
+  <text x="630" y="1661" class="micro" fill="#fbbf24">status 枚举: covered / intentionally_removed</text>
+  <text x="630" y="1677" class="micro" fill="#fbbf24">              / deferred / unknown</text>
+  <text x="630" y="1697" class="micro" fill="#fb7185">不要猜 — 证据不足保留 unknown</text>
+
+  <!-- ===== Lane 3: tester ===== -->
+  <rect x="1140" y="1320" width="480" height="100" rx="8" fill="#0f172a"/>
+  <rect x="1140" y="1320" width="480" height="100" rx="8" fill="rgba(76,29,149,0.45)" stroke="#a78bfa" stroke-width="1.6"/>
+  <text x="1380" y="1346" class="name" text-anchor="middle" font-size="13">tester Agent · contributor</text>
+  <text x="1380" y="1366" class="sub" text-anchor="middle">职责: 设计 P0 / P1 / P2 验收用例，覆盖主流程与健壮性</text>
+  <line x1="1160" y1="1378" x2="1600" y2="1378" stroke="#a78bfa" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="1380" y="1395" class="micro" text-anchor="middle">Agent: agents/tester.md</text>
+  <text x="1380" y="1411" class="micro" text-anchor="middle">Skill: skills/molecule/km-maestro-case/SKILL.md  ·  test-matrix-build</text>
+
+  <rect x="1140" y="1440" width="480" height="280" rx="8" fill="#0f172a"/>
+  <rect x="1140" y="1440" width="480" height="280" rx="8" fill="rgba(76,29,149,0.22)" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="1380" y="1462" class="lane-title" text-anchor="middle">写入文件 (write scope)</text>
+  <text x="1160" y="1486" class="micro">📄  acceptance_tests.md  (P0 / P1 / P2)</text>
+  <text x="1160" y="1504" class="micro">📄  status/tester.md</text>
+  <line x1="1160" y1="1518" x2="1600" y2="1518" stroke="#a78bfa" stroke-width="0.4" stroke-opacity="0.4"/>
+  <text x="1160" y="1538" class="micro" fill="#94a3b8">每条 case 必须含: acceptance id · priority ·</text>
+  <text x="1160" y="1554" class="micro" fill="#94a3b8">covered specs · trace ids · contract ids · evidence</text>
+  <text x="1160" y="1576" class="micro" fill="#fde68a">P0 = 稳定冒烟覆盖</text>
+  <text x="1160" y="1594" class="micro" fill="#fde68a">P1 = 主流程 + 跨模块同步</text>
+  <text x="1160" y="1612" class="micro" fill="#fde68a">P2 = empty / API failure / rapid repeat /</text>
+  <text x="1160" y="1628" class="micro" fill="#fde68a">     out-of-order response / lifecycle</text>
+  <text x="1160" y="1660" class="micro" fill="#fb7185">不写 Android/iOS 测试代码 (后续 plan 阶段)</text>
+  <text x="1160" y="1678" class="micro" fill="#fb7185">不写 architecture_design owner 决策</text>
+  <text x="1160" y="1696" class="micro" fill="#fb7185">不动 manifest.status</text>
+
+  <!-- Synchronization barrier -->
+  <rect x="60" y="1740" width="1580" height="26" rx="4" fill="#0f172a"/>
+  <rect x="60" y="1740" width="1580" height="26" rx="4" fill="rgba(251,146,60,0.35)" stroke="#fb923c" stroke-width="1.4"/>
+  <text x="850" y="1758" class="lane-title" text-anchor="middle" fill="#fed7aa">⟂  并行收敛 barrier  —  等待 architect / machpro-parity / tester 三个 status 全部 = done  (任一 blocked 则停止)</text>
+
+  <!-- Arrows from outputs into barrier -->
+  <path d="M 320,1720 L 320,1740" stroke="#22d3ee" stroke-width="1.4" fill="none" marker-end="url(#arrow-cyan)"/>
+  <path d="M 850,1720 L 850,1740" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-emerald)"/>
+  <path d="M 1380,1720 L 1380,1740" stroke="#a78bfa" stroke-width="1.4" fill="none" marker-end="url(#arrow-violet)"/>
+
+  <!-- ===== SEQUENTIAL PHASE ===== -->
+  <rect x="60" y="1786" width="1580" height="22" rx="3" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="0.8"/>
+  <text x="80" y="1802" class="lane-title" fill="#fbbf24">→ → →  顺序整合阶段 (sequential_phase)  —  architect-integrator 单独运行  → → →</text>
+
+  <!-- Integrator agent -->
+  <rect x="100" y="1830" width="500" height="110" rx="8" fill="#0f172a"/>
+  <rect x="100" y="1830" width="500" height="110" rx="8" fill="rgba(120,53,15,0.4)" stroke="#fbbf24" stroke-width="1.6"/>
+  <text x="350" y="1856" class="name" text-anchor="middle" font-size="13">architect-integrator · 顺序整合者</text>
+  <text x="350" y="1875" class="sub" text-anchor="middle">读取 status/*.md  ·  整合 traceability acceptance ids</text>
+  <text x="350" y="1891" class="sub" text-anchor="middle">解决/标记每个 unknown  ·  C8 / C12 / Plan Handoff Trace</text>
+  <line x1="120" y1="1903" x2="580" y2="1903" stroke="#fbbf24" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="350" y="1920" class="micro" text-anchor="middle">写入: 任意需要修正的 spec-pack 文件 + status/architect-integrator.md</text>
+  <text x="350" y="1934" class="micro" text-anchor="middle" fill="#cbd5e1">中文正文检查 · 英文仅限 ID/路径/字段名/枚举值</text>
+
+  <!-- Validation step -->
+  <rect x="630" y="1830" width="380" height="110" rx="8" fill="#0f172a"/>
+  <rect x="630" y="1830" width="380" height="110" rx="8" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.6"/>
+  <text x="820" y="1856" class="name" text-anchor="middle" font-size="13">校验脚本</text>
+  <text x="820" y="1876" class="sub" text-anchor="middle">python3 scripts/validate-machpro-spec-pack.py</text>
+  <text x="820" y="1892" class="sub" text-anchor="middle">&lt;spec-pack-dir&gt;</text>
+  <line x1="650" y1="1904" x2="990" y2="1904" stroke="#a78bfa" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="820" y="1922" class="micro" text-anchor="middle" fill="#fde68a">通过 → 进入 ready-for-plan</text>
+  <text x="820" y="1936" class="micro" text-anchor="middle" fill="#fb7185">失败 → 保持 draft  ·  上报 blockers</text>
+
+  <!-- Final manifest state -->
+  <rect x="1040" y="1830" width="580" height="110" rx="8" fill="#0f172a"/>
+  <rect x="1040" y="1830" width="580" height="110" rx="8" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.8"/>
+  <text x="1330" y="1856" class="name" text-anchor="middle" font-size="13">🔒 manifest.status :  draft  →  ready-for-plan</text>
+  <text x="1330" y="1875" class="sub" text-anchor="middle">contributors.*.status = done  ·  unknown 全部解决或显式标记</text>
+  <line x1="1060" y1="1888" x2="1600" y2="1888" stroke="#fb7185" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="1330" y="1907" class="micro" text-anchor="middle" fill="#fecdd3">checkpoint = 人工 review gate</text>
+  <text x="1330" y="1922" class="micro" text-anchor="middle" fill="#fecdd3">commander 审核通过后才能进入 implementation 阶段</text>
+  <text x="1330" y="1936" class="micro" text-anchor="middle" fill="#fb7185">↑ 此节点对应中层 DAG 的 checkpoint 标记</text>
+
+  <!-- Sequential arrows -->
+  <path d="M 600,1885 L 630,1885" stroke="#fbbf24" stroke-width="1.6" fill="none" marker-end="url(#arrow-amber)"/>
+  <path d="M 1010,1885 L 1040,1885" stroke="#a78bfa" stroke-width="1.6" fill="none" marker-end="url(#arrow-violet)"/>
+
+  <!-- Loopback to Section 2 (this manifest unblocks downstream batch) -->
+  <path d="M 1330,1940 L 1330,1990 L 1670,1990" stroke="#fb7185" stroke-width="1.2" fill="none" stroke-dasharray="5,3" stroke-opacity="0.7"/>
+  <text x="1340" y="1980" class="micro" fill="#fb7185">ready-for-plan 后：解锁中层 DAG 中下一批次依赖此模块的节点</text>
+
+  <!-- Legend -->
+  <rect x="40" y="2030" width="1620" height="100" rx="8" fill="#0f172a" fill-opacity="0.5" stroke="#334155" stroke-width="1"/>
+  <text x="60" y="2055" class="lane-title">图例</text>
+
+  <rect x="60" y="2070" width="22" height="14" fill="rgba(8,51,68,0.5)" stroke="#22d3ee"/>
+  <text x="90" y="2082" class="micro">architect / 前端契约</text>
+
+  <rect x="240" y="2070" width="22" height="14" fill="rgba(6,78,59,0.5)" stroke="#34d399"/>
+  <text x="270" y="2082" class="micro">machpro-parity / 后端证据</text>
+
+  <rect x="450" y="2070" width="22" height="14" fill="rgba(76,29,149,0.45)" stroke="#a78bfa"/>
+  <text x="480" y="2082" class="micro">tester / 验证产物</text>
+
+  <rect x="640" y="2070" width="22" height="14" fill="rgba(120,53,15,0.4)" stroke="#fbbf24"/>
+  <text x="670" y="2082" class="micro">流程编排 / 工作流</text>
+
+  <rect x="830" y="2070" width="22" height="14" fill="rgba(136,19,55,0.45)" stroke="#fb7185"/>
+  <text x="860" y="2082" class="micro">人工 checkpoint</text>
+
+  <rect x="1000" y="2070" width="22" height="14" fill="rgba(59,130,246,0.35)" stroke="#60a5fa" stroke-width="1.6"/>
+  <text x="1030" y="2082" class="micro">★ 当前展开模块</text>
+
+  <line x1="1180" y1="2077" x2="1230" y2="2077" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="4,3"/>
+  <text x="1240" y="2082" class="micro">跳层依赖 / loopback</text>
+
+  <text x="60" y="2108" class="micro" fill="#94a3b8">数据源: packages/cli/src/km-page-analysis/{prompts,workflow}.ts  ·  packages/cli/src/km-module-design/{prompts,workflow}.ts</text>
+  <text x="60" y="2124" class="micro" fill="#94a3b8">门店页拓扑为示意，实际批次以 km-page-analysis 输出的 module_dependency.yaml 为准。</text>
+</svg>

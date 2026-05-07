@@ -5,6 +5,7 @@ import { renderRunInspectionText } from "@harness/core";
 import { parseArgv } from "./args/index.js";
 import { runAdaptersCommand } from "./commands/adapters.js";
 import { runEvalCommand } from "./commands/eval.js";
+import { runKmPageAnalysisCommand } from "./commands/km-page-analysis.js";
 import { runKmModuleDesignCommand } from "./commands/km-module-design.js";
 import { CLI_COMMANDS } from "./constants.js";
 import { resolveDependencies } from "./dependencies.js";
@@ -51,6 +52,13 @@ const rawCommandStrategies: readonly RawCommandStrategy[] = [
     matches: (argv) => argv[0] === CLI_COMMANDS.EVAL,
     async execute(argv, context) {
       return runEvalCommand(argv.slice(1), context.io);
+    },
+  },
+  {
+    command: CLI_COMMANDS.KM_PAGE_ANALYSIS,
+    matches: (argv) => argv[0] === CLI_COMMANDS.KM_PAGE_ANALYSIS,
+    async execute(argv, context) {
+      return runKmPageAnalysisCommand(argv.slice(1), context.io);
     },
   },
   {

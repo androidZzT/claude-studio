@@ -10,6 +10,7 @@ import {
   EVAL_HELP_TEXT,
   HELP_TEXT,
   INIT_HELP_TEXT,
+  KM_PAGE_ANALYSIS_HELP_TEXT,
   RUN_HELP_TEXT,
 } from "./constants.js";
 import type {
@@ -186,6 +187,10 @@ export function getHelpText(topic?: HelpTopic): string {
 
   if (topic === "init") {
     return INIT_HELP_TEXT;
+  }
+
+  if (topic === "km-page-analysis") {
+    return KM_PAGE_ANALYSIS_HELP_TEXT;
   }
 
   if (topic === "run") {
