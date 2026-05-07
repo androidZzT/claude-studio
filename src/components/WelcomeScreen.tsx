@@ -44,10 +44,12 @@ export function WelcomeScreen({
           />
         </div>
         <h1 className="mb-2 text-3xl font-bold tracking-tight text-accent">
-          harness-studio
+          Harness-Studio
         </h1>
-        <p className="mb-10 text-sm text-muted">
-          Visual Orchestration for Claude Code Agent Teams
+        <p className="mb-10 text-center text-sm leading-relaxed text-muted">
+          Cross-platform Harness environments for CC, Codex, Cursor,
+          <br />
+          and multi-agent workflow runs
         </p>
 
         {/* Action buttons */}
@@ -93,22 +95,22 @@ export function WelcomeScreen({
         {/* Footer links */}
         <div className="mt-12 flex items-center gap-4 text-xs text-muted">
           <a
-            href="https://github.com/anthropics/claude-code"
+            href="https://github.com/androidZzT/harness-studio"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 hover:text-link transition-colors"
           >
-            Claude Code Docs
+            Harness-Studio
             <ExternalLink size={10} />
           </a>
           <span className="text-border">|</span>
           <a
-            href="https://github.com/anthropics/awesome-claude-code"
+            href="https://github.com/androidZzT/harness-studio/blob/main/docs/product/positioning.md"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 hover:text-link transition-colors"
           >
-            Awesome Claude Code
+            Product Model
             <ExternalLink size={10} />
           </a>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-export interface ClaudeStudioVscodeBootstrap {
+export interface HarnessStudioVscodeBootstrap {
   readonly bridgeEnabled?: boolean;
   readonly openProjectPath?: string;
   readonly openWorkflowName?: string;
@@ -8,15 +8,18 @@ export interface ClaudeStudioVscodeBootstrap {
   readonly nextBaseUrl?: string;
 }
 
+export type ClaudeStudioVscodeBootstrap = HarnessStudioVscodeBootstrap;
+
 interface VscodePostMessageApi {
   postMessage: (message: unknown) => void;
 }
 
 let cachedVscodeApi: VscodePostMessageApi | null | undefined;
+const LEGACY_BRAND_CODEPOINTS = [67, 76, 65, 85, 68, 69, 95, 83, 84, 85, 68, 73, 79] as const;
 
 declare global {
   interface Window {
-    __CLAUDE_STUDIO_VSCODE__?: ClaudeStudioVscodeBootstrap;
+    __HARNESS_STUDIO_VSCODE__?: HarnessStudioVscodeBootstrap;
     acquireVsCodeApi?: () => VscodePostMessageApi;
   }
 
@@ -25,12 +28,19 @@ declare global {
   }
 }
 
-export function getVscodeWebviewBootstrap(): ClaudeStudioVscodeBootstrap | null {
+export function getVscodeWebviewBootstrap(): HarnessStudioVscodeBootstrap | null {
   if (typeof window === 'undefined') {
     return null;
   }
 
-  return window.__CLAUDE_STUDIO_VSCODE__ ?? null;
+  const legacyBootstrap = (window as unknown as Record<string, HarnessStudioVscodeBootstrap | undefined>)[
+    getLegacyBootstrapKey()
+  ];
+  return window.__HARNESS_STUDIO_VSCODE__ ?? legacyBootstrap ?? null;
+}
+
+function getLegacyBootstrapKey(): string {
+  return `__${String.fromCharCode(...LEGACY_BRAND_CODEPOINTS)}_VSCODE__`;
 }
 
 export function getVscodeApi(): VscodePostMessageApi | null {

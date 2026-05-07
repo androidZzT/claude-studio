@@ -26,7 +26,19 @@ import {
   type ExecutionOptions,
   type WorkflowInput,
 } from './execution-engine';
+import {
+  checkHarnessCliAvailability,
+  dryRunHarnessWorkflow,
+  inspectHarnessRun,
+  viewHarnessRun,
+} from './harness-cli';
 import { validateWorkflow, type ValidationResult } from './workflow-validation';
+import {
+  readVisualRunArtifact,
+  readVisualRunTrace,
+  readVisualWorkflowRun,
+  readVisualWorkflowRuns,
+} from './visual-workflow';
 
 export interface StudioCore {
   readonly resources: {
@@ -73,6 +85,18 @@ export interface StudioCore {
     readonly getExecution: (id: string) => ExecutionRunner | undefined;
     readonly removeExecution: (id: string) => boolean;
   };
+  readonly harnessCli: {
+    readonly checkAvailability: typeof checkHarnessCliAvailability;
+    readonly dryRunWorkflow: typeof dryRunHarnessWorkflow;
+    readonly inspectRun: typeof inspectHarnessRun;
+    readonly viewRun: typeof viewHarnessRun;
+  };
+  readonly visualization: {
+    readonly readVisualWorkflowRuns: typeof readVisualWorkflowRuns;
+    readonly readVisualWorkflowRun: typeof readVisualWorkflowRun;
+    readonly readVisualRunArtifact: typeof readVisualRunArtifact;
+    readonly readVisualRunTrace: typeof readVisualRunTrace;
+  };
 }
 
 export function createStudioCore(): StudioCore {
@@ -107,6 +131,18 @@ export function createStudioCore(): StudioCore {
       startExecution,
       getExecution,
       removeExecution,
+    },
+    harnessCli: {
+      checkAvailability: checkHarnessCliAvailability,
+      dryRunWorkflow: dryRunHarnessWorkflow,
+      inspectRun: inspectHarnessRun,
+      viewRun: viewHarnessRun,
+    },
+    visualization: {
+      readVisualWorkflowRuns,
+      readVisualWorkflowRun,
+      readVisualRunArtifact,
+      readVisualRunTrace,
     },
   };
 }

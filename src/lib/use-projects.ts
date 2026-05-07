@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Project } from '@/types/resources';
 import { apiFetch, isVscodeBridgeEnabled, pickDirectoryViaVscodeBridge } from './api-client';
 
-const STORAGE_KEY = 'claude-studio:activeProjectId';
-const RECENT_KEY = 'claude-studio:recentProjects';
+const STORAGE_KEY = 'harness-studio:activeProjectId';
+const RECENT_KEY = 'harness-studio:recentProjects';
 const MAX_RECENT = 10;
 
 export interface RecentProject {

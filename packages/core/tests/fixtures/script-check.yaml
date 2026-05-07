@@ -1,0 +1,5 @@
+name: script-fixture
+env:
+  required:
+    - name: custom-check
+      script: echo ok

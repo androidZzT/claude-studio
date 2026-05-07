@@ -1,0 +1,12 @@
+{
+  "description": "fixture refs",
+  "projects": {
+    "proj_b": {
+      "path": "../b"
+    },
+    "proj_a": {
+      "path": "../a",
+      "git_url": "ssh://git@example/a.git"
+    }
+  }
+}

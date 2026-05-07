@@ -9,6 +9,7 @@ function formatStars(count: number): string {
 }
 
 const FALLBACK_LINKS: readonly { readonly name: string; readonly url: string; readonly stars?: string }[] = [
+  { name: 'Harness-Studio', url: 'https://github.com/androidZzT/harness-studio' },
   { name: 'Awesome Claude Code', url: 'https://github.com/hesreallyhim/awesome-claude-code', stars: '37K' },
   { name: 'Agent Templates', url: 'https://github.com/VoltAgent/awesome-claude-code-subagents', stars: '17K' },
   { name: 'Skills Collection', url: 'https://github.com/alirezarezvani/claude-skills', stars: '10K' },
@@ -33,7 +34,7 @@ export function CommunityLinks() {
       <div className="flex items-center gap-1.5 px-2 py-1">
         <Globe size={11} className="text-muted" />
         <span className="text-[10px] font-semibold tracking-wide text-foreground/60">
-          Community
+          Ecosystem
         </span>
       </div>
       <ul className="flex flex-col gap-0.5 px-1">

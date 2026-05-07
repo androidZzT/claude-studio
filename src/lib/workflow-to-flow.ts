@@ -9,8 +9,11 @@ export type ExecutionNodeStatus =
   | 'queued'
   | 'running'
   | 'done'
+  | 'succeeded'
   | 'failed'
   | 'waiting-checkpoint'
+  | 'blocked'
+  | 'skipped'
   | 'cancelled';
 
 /**
@@ -28,6 +31,12 @@ export interface DagNodeData extends Record<string, unknown> {
   readonly skills: readonly string[];
   readonly mcpServers: readonly string[];
   readonly executionStatus?: ExecutionNodeStatus | null;
+  readonly tool?: string;
+  readonly durationMs?: number;
+  readonly toolCallCount?: number;
+  readonly skillUseCount?: number;
+  readonly totalTokens?: number;
+  readonly trajectoryStatus?: string;
   readonly inCount?: number;
   readonly outCount?: number;
   readonly text?: string;

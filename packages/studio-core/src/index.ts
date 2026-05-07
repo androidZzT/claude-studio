@@ -11,4 +11,6 @@ export * from './workflow-validation';
 export * from './workflow-document';
 export * from './topology';
 export * from './execution-engine';
+export * from './harness-cli';
+export * from './visual-workflow';
 export * from './studio-core';

@@ -1,0 +1,5 @@
+name: script-fail
+env:
+  required:
+    - name: broken-script
+      script: exit 1

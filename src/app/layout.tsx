@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'harness-studio',
+  title: 'Harness-Studio',
   description: 'Visual Orchestration for Claude Code Agent Teams. Manage agents, workflows, skills & rules with a drag-and-drop DAG editor.',
-  keywords: ['claude code', 'agent orchestration', 'workflow editor', 'visual editor', 'harness-studio'],
+  keywords: ['claude code', 'agent orchestration', 'workflow editor', 'visual editor', 'Harness-Studio'],
   icons: {
     icon: '/icon.svg',
   },

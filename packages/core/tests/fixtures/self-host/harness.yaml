@@ -1,0 +1,15 @@
+name: harness-cli
+scope: project
+version: 0.1.0
+
+tools:
+  - codex
+
+canonical:
+  instructions: ./AGENTS.md.template
+  codexConfig: ./.codex/config.toml.template
+
+adapters:
+  codex:
+    enabled: true
+    target: .

@@ -1,6 +1,8 @@
-# Harness Studio VS Code Extension (MVP)
+# Harness Studio VS Code Extension
 
-This extension adds two commands:
+Harness Studio is positioned as a cross-platform harness environment manager: one harness project can be projected into Claude Code, Codex, Cursor, and other agent runtimes while keeping multi-agent workflow runs visible in VS Code.
+
+This extension adds these commands:
 
 - `Harness Studio: Start Server`
 - `Harness Studio: Open`
@@ -15,6 +17,12 @@ The local `webview` bridge handles:
 - in-process file/resource/settings/project APIs
 - in-process execution and watch streams
 - optional Claude CLI generation (`/api/generate`)
+- visual run inspection for `.harness/runs`
+- `harness-cli` bridge shape for dry-run / inspect / view in the web app API
+
+The current adapter is Claude Code-compatible (`.claude/`, `CLAUDE.md`). Codex and Cursor adapters are intended to plug into the same harness project model rather than fork the UI.
+
+`harness-cli` should remain the execution/governance engine. Studio should read `.harness/runs` and call CLI bridge endpoints rather than reimplement autonomous execution inside the extension.
 
 `openMode=nativePreview` opens a no-iframe preview panel that supports:
 

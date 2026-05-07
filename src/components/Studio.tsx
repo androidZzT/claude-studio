@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import type { Node, Edge } from '@xyflow/react';
-import type { Resource } from '@/types/resources';
+import type { Project, Resource, Workflow } from '@/types/resources';
 import type { DagNodeData } from '@/lib/workflow-to-flow';
 import { apiFetch } from '@/lib/api-client';
 import { useProjectManagement } from '@/lib/use-project-management';
@@ -12,11 +12,15 @@ import { useResources } from '@/lib/use-resources';
 import { useSettings } from '@/lib/use-settings';
 import { useFileWatcher } from '@/lib/use-file-watcher';
 import { useExecution } from '@/lib/use-execution';
+import { useVisualRuns } from '@/lib/use-visual-runs';
+import { skillResourceToVisualRun } from '@/lib/skill-phases-to-visual-run';
 import { flowToWorkflow } from '@/lib/flow-to-workflow';
 import { ProjectPanel } from './panels/ProjectPanel';
 import { PropertyPanel } from './panels/PropertyPanel';
 import { ExecutionPanel } from './panels/ExecutionPanel';
+import { VisualRunInspector } from './panels/VisualRunInspector';
 import { WorkflowCanvas } from './workflow/WorkflowCanvas';
+import { VisualWorkflowCanvas } from './workflow/VisualWorkflowCanvas';
 import { WelcomeScreen } from './WelcomeScreen';
 import { SettingsModal } from './settings/SettingsModal';
 import { StudioSettingsModal } from './settings/StudioSettingsModal';
@@ -44,14 +48,17 @@ export function Studio() {
   }, []);
 
   const wfs = useWorkflowState(pm.activeProject, pm.activeProjectId);
+  const visualRuns = useVisualRuns(pm.activeProjectId, Boolean(pm.activeProject));
+  const [visualSelectedNodeId, setVisualSelectedNodeId] = useState<string | null>(null);
   const autoOpenBootstrappedRef = useRef(false);
   const [pendingWorkflowAutoSelect, setPendingWorkflowAutoSelect] = useState<string | null>(null);
 
   // Reset selection when project opens/closes
   const handleOpenProjectFromPath = useCallback(async (projectPath: string) => {
     wfs.resetSelection();
+    visualRuns.clearSelection();
     await pm.handleOpenProjectFromPath(projectPath);
-  }, [pm, wfs]);
+  }, [pm, wfs, visualRuns]);
 
   useEffect(() => {
     if (autoOpenBootstrappedRef.current) return;
@@ -81,19 +88,30 @@ export function Studio() {
     if (!matched) return;
 
     wfs.handleSelectResource(matched);
+    visualRuns.clearSelection();
     setPendingWorkflowAutoSelect(null);
-  }, [pendingWorkflowAutoSelect, pm.activeProject, wfs]);
+  }, [pendingWorkflowAutoSelect, pm.activeProject, wfs, visualRuns]);
 
   const handleCloseProject = useCallback(() => {
     wfs.resetSelection();
+    visualRuns.clearSelection();
+    setVisualSelectedNodeId(null);
     pm.handleCloseProject();
-  }, [pm, wfs]);
+  }, [pm, wfs, visualRuns]);
+
+  const handleSelectRecentProject = useCallback((projectPath: string) => {
+    wfs.resetSelection();
+    visualRuns.clearSelection();
+    setVisualSelectedNodeId(null);
+    pm.handleSelectRecent(projectPath);
+  }, [pm, wfs, visualRuns]);
 
   // --- File watcher ---
   const handleFileChange = useCallback(() => {
     pm.projectOpen.refetch();
     refetchResources();
-  }, [pm.projectOpen, refetchResources]);
+    visualRuns.refetch();
+  }, [pm.projectOpen, refetchResources, visualRuns]);
 
   const { connected } = useFileWatcher(handleFileChange);
 
@@ -281,6 +299,30 @@ export function Studio() {
     }
   }, [pm.projectOpen]);
 
+  const handleSelectResource = useCallback((resource: Resource) => {
+    visualRuns.clearSelection();
+    setVisualSelectedNodeId(null);
+    wfs.handleSelectResource(resource);
+  }, [visualRuns, wfs]);
+
+  const handleSelectClaudeMd = useCallback((project: Project) => {
+    visualRuns.clearSelection();
+    setVisualSelectedNodeId(null);
+    wfs.handleSelectClaudeMd(project);
+  }, [visualRuns, wfs]);
+
+  const handleCreateWorkflowFromPanel = useCallback((project: Project, template?: Workflow) => {
+    visualRuns.clearSelection();
+    setVisualSelectedNodeId(null);
+    wfs.handleCreateWorkflow(project, template);
+  }, [visualRuns, wfs]);
+
+  const handleSelectVisualRun = useCallback((runId: string) => {
+    wfs.resetSelection();
+    setVisualSelectedNodeId(null);
+    visualRuns.selectRun(runId);
+  }, [visualRuns, wfs]);
+
   // --- Derived data ---
   const auxiliaryResources = useMemo(
     () => allResources.filter((r) => r.type === 'skills' || r.type === 'rules'),
@@ -297,6 +339,17 @@ export function Studio() {
     () => (settings ? Object.keys(settings.mcpServers) : []),
     [settings]
   );
+
+  const staticSkillVisualRun = useMemo(
+    () => skillResourceToVisualRun(wfs.selectedResource),
+    [wfs.selectedResource],
+  );
+
+  const activeVisualRun = visualRuns.selectedRun ?? staticSkillVisualRun;
+
+  useEffect(() => {
+    setVisualSelectedNodeId(null);
+  }, [activeVisualRun?.runId, activeVisualRun?.source]);
 
   const canvasAgents = useMemo(
     () => (pm.activeProject?.agents ?? []).map((a) => ({ name: a.name, id: a.id })),
@@ -340,7 +393,7 @@ export function Studio() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-border px-4">
-        <h1 className="text-sm font-semibold tracking-tight">harness-studio</h1>
+        <h1 className="text-sm font-semibold tracking-tight">Harness-Studio</h1>
         <button
           onClick={() => setSettingsOpen(true)}
           className="rounded px-2 py-1 text-xs text-muted hover:bg-surface-hover hover:text-foreground"
@@ -358,14 +411,18 @@ export function Studio() {
             auxiliaryResources={auxiliaryResources}
             mcpServerNames={availableMcpServerNames}
             selectedId={wfs.selectedResource?.id ?? null}
+            visualRuns={visualRuns.summaries}
+            selectedVisualRunId={visualRuns.selectedRunId}
+            visualRunsLoading={visualRuns.loading}
             onOpenProject={() => pm.setOpenModalOpen(true)}
             onNewProject={() => pm.setNewModalOpen(true)}
             onCloseProject={handleCloseProject}
-            onSelectRecent={pm.handleSelectRecent}
+            onSelectRecent={handleSelectRecentProject}
             onRemoveRecent={pm.handleRemoveRecent}
-            onSelectResource={wfs.handleSelectResource}
-            onSelectClaudeMd={wfs.handleSelectClaudeMd}
-            onCreateWorkflow={wfs.handleCreateWorkflow}
+            onSelectResource={handleSelectResource}
+            onSelectVisualRun={handleSelectVisualRun}
+            onSelectClaudeMd={handleSelectClaudeMd}
+            onCreateWorkflow={handleCreateWorkflowFromPanel}
             onDeleteWorkflow={handleDeleteWorkflow}
             onCreateAgent={() => setAgentCreateOpen(true)}
             onImportAgent={handleImportAgent}
@@ -385,6 +442,15 @@ export function Studio() {
               onOpenProject={() => pm.setOpenModalOpen(true)}
               onNewProject={() => pm.setNewModalOpen(true)}
               onSelectRecent={pm.handleSelectRecent}
+            />
+          ) : activeVisualRun ? (
+            <VisualWorkflowCanvas
+              run={activeVisualRun}
+              selectedNodeId={visualSelectedNodeId}
+              onNodeSelect={setVisualSelectedNodeId}
+              loading={visualRuns.runLoading}
+              showCanvasGrid={studioSettings.settings.showCanvasGrid}
+              showMinimap={studioSettings.settings.showMinimap}
             />
           ) : (
             <WorkflowCanvas
@@ -423,6 +489,12 @@ export function Studio() {
               logs={execution.logs}
               onCancel={handleCancelRun}
               onApproveCheckpoint={handleApproveCheckpoint}
+            />
+          ) : activeVisualRun ? (
+            <VisualRunInspector
+              projectId={pm.activeProjectId}
+              run={activeVisualRun}
+              selectedNodeId={visualSelectedNodeId}
             />
           ) : (
             <PropertyPanel

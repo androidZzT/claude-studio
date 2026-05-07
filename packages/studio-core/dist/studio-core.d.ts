@@ -1,7 +1,9 @@
 import type { Project, ProjectSummary, Resource, ResourceType } from './types';
 import { type CreateProjectParams } from './project-creation';
 import { type ExecutionRunner, type ExecutionOptions, type WorkflowInput } from './execution-engine';
+import { checkHarnessCliAvailability, dryRunHarnessWorkflow, inspectHarnessRun, viewHarnessRun } from './harness-cli';
 import { type ValidationResult } from './workflow-validation';
+import { readVisualRunArtifact, readVisualRunTrace, readVisualWorkflowRun, readVisualWorkflowRuns } from './visual-workflow';
 export interface StudioCore {
     readonly resources: {
         readonly readResourceFile: (filePath: string, type: ResourceType, baseDir?: string) => Promise<Resource>;
@@ -36,6 +38,18 @@ export interface StudioCore {
         readonly startExecution: (workflow: WorkflowInput, options?: ExecutionOptions) => ExecutionRunner;
         readonly getExecution: (id: string) => ExecutionRunner | undefined;
         readonly removeExecution: (id: string) => boolean;
+    };
+    readonly harnessCli: {
+        readonly checkAvailability: typeof checkHarnessCliAvailability;
+        readonly dryRunWorkflow: typeof dryRunHarnessWorkflow;
+        readonly inspectRun: typeof inspectHarnessRun;
+        readonly viewRun: typeof viewHarnessRun;
+    };
+    readonly visualization: {
+        readonly readVisualWorkflowRuns: typeof readVisualWorkflowRuns;
+        readonly readVisualWorkflowRun: typeof readVisualWorkflowRun;
+        readonly readVisualRunArtifact: typeof readVisualRunArtifact;
+        readonly readVisualRunTrace: typeof readVisualRunTrace;
     };
 }
 export declare function createStudioCore(): StudioCore;

@@ -10,7 +10,7 @@ interface BridgeRequestPayload {
 }
 
 interface BridgeRequestMessage {
-  readonly source: 'claude-studio-app';
+  readonly source: 'harness-studio-app';
   readonly type: 'bridgeRequest';
   readonly id: string;
   readonly request: BridgeRequestPayload;
@@ -23,53 +23,53 @@ interface BridgeResponsePayload {
 }
 
 interface BridgeResponseMessage {
-  readonly source: 'claude-studio-webview';
+  readonly source: 'harness-studio-webview';
   readonly type: 'bridge-response';
   readonly id: string;
   readonly response: BridgeResponsePayload;
 }
 
 interface BridgeStreamStartMessage {
-  readonly source: 'claude-studio-app';
+  readonly source: 'harness-studio-app';
   readonly type: 'bridgeStreamStart';
   readonly id: string;
   readonly url: string;
 }
 
 interface BridgeStreamStopMessage {
-  readonly source: 'claude-studio-app';
+  readonly source: 'harness-studio-app';
   readonly type: 'bridgeStreamStop';
   readonly id: string;
 }
 
 interface BridgeStreamEventMessage {
-  readonly source: 'claude-studio-webview';
+  readonly source: 'harness-studio-webview';
   readonly type: 'bridge-stream-event';
   readonly id: string;
   readonly data: string;
 }
 
 interface BridgeStreamErrorMessage {
-  readonly source: 'claude-studio-webview';
+  readonly source: 'harness-studio-webview';
   readonly type: 'bridge-stream-error';
   readonly id: string;
   readonly error?: string;
 }
 
 interface BridgeStreamEndMessage {
-  readonly source: 'claude-studio-webview';
+  readonly source: 'harness-studio-webview';
   readonly type: 'bridge-stream-end';
   readonly id: string;
 }
 
 interface BridgePickDirectoryMessage {
-  readonly source: 'claude-studio-app';
+  readonly source: 'harness-studio-app';
   readonly type: 'bridgePickDirectory';
   readonly id: string;
 }
 
 interface BridgePickDirectoryResponseMessage {
-  readonly source: 'claude-studio-webview';
+  readonly source: 'harness-studio-webview';
   readonly type: 'bridge-pick-directory-response';
   readonly id: string;
   readonly path?: string;
@@ -165,7 +165,7 @@ export function createApiEventStream(url: string, handlers: ApiEventStreamHandle
   pendingStreams.set(streamId, handlers);
 
   const startMessage: BridgeStreamStartMessage = {
-    source: 'claude-studio-app',
+    source: 'harness-studio-app',
     type: 'bridgeStreamStart',
     id: streamId,
     url: bridgeUrl,
@@ -179,7 +179,7 @@ export function createApiEventStream(url: string, handlers: ApiEventStreamHandle
         return;
       }
       const stopMessage: BridgeStreamStopMessage = {
-        source: 'claude-studio-app',
+        source: 'harness-studio-app',
         type: 'bridgeStreamStop',
         id: streamId,
       };
@@ -232,7 +232,7 @@ export async function pickDirectoryViaVscodeBridge(): Promise<string | null> {
     pendingDirectoryPicks.set(id, { resolve, reject, timeoutId });
 
     const message: BridgePickDirectoryMessage = {
-      source: 'claude-studio-app',
+      source: 'harness-studio-app',
       type: 'bridgePickDirectory',
       id,
     };
@@ -433,7 +433,7 @@ async function sendBridgeRequest(
     });
 
     const message: BridgeRequestMessage = {
-      source: 'claude-studio-app',
+      source: 'harness-studio-app',
       type: 'bridgeRequest',
       id,
       request,
@@ -486,7 +486,7 @@ function isBridgeResponseMessage(value: unknown): value is BridgeResponseMessage
   };
   return (
     (
-      message.source === 'claude-studio-webview' &&
+      isBridgeWebviewSource(message.source) &&
       message.type === 'bridge-response' &&
       typeof message.id === 'string' &&
       !!message.response &&
@@ -515,7 +515,7 @@ function isBridgeStreamEventMessage(value: unknown): value is BridgeStreamEventM
   };
   return (
     (
-      message.source === 'claude-studio-webview' &&
+      isBridgeWebviewSource(message.source) &&
       message.type === 'bridge-stream-event' &&
       typeof message.id === 'string' &&
       typeof message.data === 'string'
@@ -539,7 +539,7 @@ function isBridgeStreamErrorMessage(value: unknown): value is BridgeStreamErrorM
   };
   return (
     (
-      message.source === 'claude-studio-webview' &&
+      isBridgeWebviewSource(message.source) &&
       message.type === 'bridge-stream-error' &&
       typeof message.id === 'string'
     ) || (
@@ -561,7 +561,7 @@ function isBridgeStreamEndMessage(value: unknown): value is BridgeStreamEndMessa
   };
   return (
     (
-      message.source === 'claude-studio-webview' &&
+      isBridgeWebviewSource(message.source) &&
       message.type === 'bridge-stream-end' &&
       typeof message.id === 'string'
     ) || (
@@ -585,7 +585,7 @@ function isBridgePickDirectoryResponseMessage(value: unknown): value is BridgePi
   };
   return (
     (
-      message.source === 'claude-studio-webview' &&
+      isBridgeWebviewSource(message.source) &&
       message.type === 'bridge-pick-directory-response' &&
       typeof message.id === 'string' &&
       (message.path === undefined || typeof message.path === 'string') &&
@@ -597,4 +597,8 @@ function isBridgePickDirectoryResponseMessage(value: unknown): value is BridgePi
       (legacyMessage.error === undefined || typeof legacyMessage.error === 'string')
     )
   );
+}
+
+function isBridgeWebviewSource(source: unknown): source is 'harness-studio-webview' {
+  return source === 'harness-studio-webview';
 }

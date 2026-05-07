@@ -27,5 +27,7 @@ __exportStar(require("./workflow-validation"), exports);
 __exportStar(require("./workflow-document"), exports);
 __exportStar(require("./topology"), exports);
 __exportStar(require("./execution-engine"), exports);
+__exportStar(require("./harness-cli"), exports);
+__exportStar(require("./visual-workflow"), exports);
 __exportStar(require("./studio-core"), exports);
 //# sourceMappingURL=index.js.map

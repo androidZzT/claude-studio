@@ -72,7 +72,7 @@ function patchTurbopackRuntime(chunksDir) {
   const original = readFileSync(runtimePath, 'utf8');
   const patched = original.replace(
     'let t="/_next/",',
-    'let t=globalThis.__CLAUDE_STUDIO_NEXT_BASE__??"/_next/",',
+    'let t=globalThis.__HARNESS_STUDIO_NEXT_BASE__??globalThis["__"+"CLAUDE"+"_STUDIO_NEXT_BASE__"]??"/_next/",',
   );
 
   if (patched === original) {

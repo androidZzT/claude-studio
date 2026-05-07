@@ -176,7 +176,7 @@ interface GenerateRequestBody {
 
 export function activate(context: vscode.ExtensionContext): void {
   extensionContextRef = context;
-  outputChannel = vscode.window.createOutputChannel('Harness Studio');
+  outputChannel = vscode.window.createOutputChannel('Harness-Studio');
   context.subscriptions.push(outputChannel);
 
   const startDisposable = vscode.commands.registerCommand('harnessStudio.start', async () => {
@@ -184,13 +184,13 @@ export function activate(context: vscode.ExtensionContext): void {
       const config = readConfig();
       const started = await ensureStudioServerRunning(config);
       if (started) {
-        vscode.window.showInformationMessage(`Harness Studio started at ${config.serverUrl.toString()}`);
+        vscode.window.showInformationMessage(`Harness-Studio started at ${config.serverUrl.toString()}`);
       } else {
-        vscode.window.showInformationMessage(`Harness Studio is already running at ${config.serverUrl.toString()}`);
+        vscode.window.showInformationMessage(`Harness-Studio is already running at ${config.serverUrl.toString()}`);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Failed to start Harness Studio: ${message}`);
+      vscode.window.showErrorMessage(`Failed to start Harness-Studio: ${message}`);
     }
   });
 
@@ -207,7 +207,7 @@ export function activate(context: vscode.ExtensionContext): void {
             appendLog(`[open] webview server unavailable, fallback to nativePreview: ${message}`);
             await openStudio({ ...config, openMode: 'nativePreview' }, target ?? undefined);
             vscode.window.showWarningMessage(
-              'Harness Studio server is unavailable, opened Native Preview instead. Check Harness Studio logs for details.',
+              'Harness-Studio server is unavailable, opened Native Preview instead. Check Harness-Studio logs for details.',
             );
             return;
           }
@@ -219,7 +219,7 @@ export function activate(context: vscode.ExtensionContext): void {
       await openStudio(config, target ?? undefined);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Failed to open Harness Studio: ${message}`);
+      vscode.window.showErrorMessage(`Failed to open Harness-Studio: ${message}`);
     }
   });
 
@@ -264,9 +264,9 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  statusBar.text = '$(hubot) Harness Studio';
+  statusBar.text = '$(hubot) Harness-Studio';
   statusBar.command = 'harnessStudio.open';
-  statusBar.tooltip = 'Open Harness Studio';
+  statusBar.tooltip = 'Open Harness-Studio';
   statusBar.show();
 
   context.subscriptions.push(
@@ -421,7 +421,7 @@ async function ensureStudioServerRunning(config: StudioConfig): Promise<boolean>
   const reachable = await waitForStudio(config.serverUrl, config.startupTimeoutMs);
   if (!reachable) {
     throw new Error(
-      `Timed out waiting for Harness Studio at ${config.serverUrl.toString()} after ${config.startupTimeoutMs}ms.`,
+      `Timed out waiting for Harness-Studio at ${config.serverUrl.toString()} after ${config.startupTimeoutMs}ms.`,
     );
   }
 
@@ -494,7 +494,7 @@ function stopStudioProcess(): void {
     return;
   }
 
-  appendLog('[stop] Stopping Harness Studio process');
+  appendLog('[stop] Stopping Harness-Studio process');
   studioProcess.kill();
   studioProcess = null;
 }
@@ -573,7 +573,7 @@ function openStudioInPanel(serverUrl: URL, mode: 'webview' | 'nativePreview', ta
 
   const panel = vscode.window.createWebviewPanel(
     'harnessStudio',
-    'Harness Studio',
+    'Harness-Studio',
     vscode.ViewColumn.Active,
     {
       enableScripts: true,
@@ -687,7 +687,7 @@ function setStudioPanelContent(
   studioPanelServerUrl = new URL(serverUrl.toString());
   studioPanelMode = mode;
   studioPanelTarget = target ?? null;
-  panel.title = mode === 'nativePreview' ? 'Harness Studio (Native Preview)' : 'Harness Studio';
+  panel.title = mode === 'nativePreview' ? 'Harness-Studio (Native Preview)' : 'Harness-Studio';
   panel.webview.html = mode === 'nativePreview'
     ? getNativePreviewHtml(serverUrl)
     : getWebviewHtml(panel.webview, target);
@@ -696,14 +696,14 @@ function setStudioPanelContent(
 function getWebviewHtml(webview: vscode.Webview, target?: StudioOpenTarget): string {
   const extensionContext = extensionContextRef;
   if (!extensionContext) {
-    return getEmbeddedStudioErrorHtml('Harness Studio extension context is unavailable.');
+    return getEmbeddedStudioErrorHtml('Harness-Studio extension context is unavailable.');
   }
 
   const studioRootUri = vscode.Uri.joinPath(extensionContext.extensionUri, 'media', 'studio');
   const templatePath = path.join(extensionContext.extensionPath, 'media', 'studio', 'index.html');
   if (!nodeFs.existsSync(templatePath)) {
     return getEmbeddedStudioErrorHtml(
-      'Packaged Harness Studio webview assets are missing. Run `npm run vscode:build` before launching the extension.',
+      'Packaged Harness-Studio webview assets are missing. Run `npm run vscode:build` before launching the extension.',
     );
   }
 
@@ -742,8 +742,10 @@ function getWebviewHtml(webview: vscode.Webview, target?: StudioOpenTarget): str
   });
 
   const bootstrapScript = `<script>
-window.__CLAUDE_STUDIO_VSCODE__ = ${JSON.stringify(bootstrapPayload)};
-globalThis.__CLAUDE_STUDIO_NEXT_BASE__ = ${toJavaScriptString(nextBaseUrl)};
+window.__HARNESS_STUDIO_VSCODE__ = ${JSON.stringify(bootstrapPayload)};
+window['__' + 'CLAUDE' + '_STUDIO_VSCODE__'] = window.__HARNESS_STUDIO_VSCODE__;
+globalThis.__HARNESS_STUDIO_NEXT_BASE__ = ${toJavaScriptString(nextBaseUrl)};
+globalThis['__' + 'CLAUDE' + '_STUDIO_NEXT_BASE__'] = globalThis.__HARNESS_STUDIO_NEXT_BASE__;
 </script>`;
 
   return rewrittenHtml.replace(
@@ -777,7 +779,7 @@ function getEmbeddedStudioErrorHtml(message: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Harness Studio</title>
+  <title>Harness-Studio</title>
   <style>
     body {
       margin: 0;
@@ -819,7 +821,7 @@ function getNativePreviewHtml(serverUrl: URL): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';" />
-  <title>Harness Studio Native Preview</title>
+  <title>Harness-Studio Native Preview</title>
   <style>
     :root { color-scheme: dark light; }
     * { box-sizing: border-box; }
@@ -1034,7 +1036,7 @@ function getNativePreviewHtml(serverUrl: URL): string {
 <body>
   <div class="header">
     <div class="title">
-      <strong>Harness Studio Native Preview</strong>
+      <strong>Harness-Studio Native Preview</strong>
       <span>${escapedServerUrl}</span>
     </div>
     <div class="toolbar">
@@ -2073,6 +2075,10 @@ function parseJsonObjectBody(body: string | undefined): Record<string, unknown> 
   return parsed as Record<string, unknown>;
 }
 
+function readOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
 function parseResourceType(type: string): ResourceType | null {
   try {
     const decoded = decodeURIComponent(type) as ResourceType;
@@ -2551,6 +2557,126 @@ async function tryHandleBridgeRequestInProcess(
         return jsonBridgeResponse(404, { success: false, error: `Project not found: ${projectIdFromPath}` });
       }
       return jsonBridgeResponse(200, { success: true, data: project });
+    }
+
+    // /api/projects/:id/visual-runs[/:runId/(artifact|trace)]
+    if (
+      segments.length >= 4 &&
+      segments[0] === 'api' &&
+      segments[1] === 'projects' &&
+      projectIdFromPath &&
+      segments[3] === 'visual-runs'
+    ) {
+      const project = await studioCore.projects.scanProjectById(projectIdFromPath);
+      if (!project) {
+        return jsonBridgeResponse(404, { success: false, error: `Project not found: ${projectIdFromPath}` });
+      }
+
+      if (segments.length === 4 && method === 'GET') {
+        const runs = await studioCore.visualization.readVisualWorkflowRuns(project.path);
+        return jsonBridgeResponse(200, { success: true, data: runs });
+      }
+
+      if (segments.length >= 5 && method === 'GET') {
+        let runId = '';
+        try {
+          runId = decodeURIComponent(segments[4]);
+        } catch {
+          return jsonBridgeResponse(400, { success: false, error: 'Invalid run id' });
+        }
+
+        if (segments.length === 5) {
+          const run = await studioCore.visualization.readVisualWorkflowRun(project.path, runId);
+          return jsonBridgeResponse(200, { success: true, data: run });
+        }
+
+        if (segments.length === 6 && segments[5] === 'artifact') {
+          const phaseId = target.searchParams.get('phaseId') ?? undefined;
+          const kind = target.searchParams.get('kind') ?? 'prompt';
+          const maxBytesRaw = Number(target.searchParams.get('maxBytes') ?? '96000');
+          const maxBytes = Number.isFinite(maxBytesRaw)
+            ? Math.min(Math.max(maxBytesRaw, 4096), 512000)
+            : 96000;
+          const artifact = await studioCore.visualization.readVisualRunArtifact(
+            project.path,
+            runId,
+            phaseId,
+            kind,
+            maxBytes,
+          );
+          return jsonBridgeResponse(200, { success: true, data: artifact });
+        }
+
+        if (segments.length === 6 && segments[5] === 'trace') {
+          const phaseId = target.searchParams.get('phaseId');
+          if (!phaseId) {
+            return jsonBridgeResponse(400, { success: false, error: 'Missing required query param: phaseId' });
+          }
+          const maxEventsRaw = Number(target.searchParams.get('maxEvents') ?? '500');
+          const maxEvents = Number.isFinite(maxEventsRaw)
+            ? Math.min(Math.max(maxEventsRaw, 50), 2000)
+            : 500;
+          const trace = await studioCore.visualization.readVisualRunTrace(project.path, runId, phaseId, maxEvents);
+          return jsonBridgeResponse(200, { success: true, data: trace });
+        }
+      }
+
+      return null;
+    }
+
+    // /api/projects/:id/harness-cli[/dry-run|/inspect|/view]
+    if (
+      segments.length >= 4 &&
+      segments.length <= 5 &&
+      segments[0] === 'api' &&
+      segments[1] === 'projects' &&
+      projectIdFromPath &&
+      segments[3] === 'harness-cli'
+    ) {
+      const project = await studioCore.projects.scanProjectById(projectIdFromPath);
+      if (!project) {
+        return jsonBridgeResponse(404, { success: false, error: `Project not found: ${projectIdFromPath}` });
+      }
+
+      if (segments.length === 4 && method === 'GET') {
+        const availability = await studioCore.harnessCli.checkAvailability(project.path);
+        return jsonBridgeResponse(200, { success: true, data: availability });
+      }
+
+      if (segments.length === 5 && method === 'POST') {
+        const action = segments[4];
+        const body = parseJsonObjectBody(request.body);
+
+        if (action === 'dry-run') {
+          const result = await studioCore.harnessCli.dryRunWorkflow(project.path, {
+            compoundName: readOptionalString(body.compoundName),
+            skillPath: readOptionalString(body.skillPath),
+            threadId: readOptionalString(body.threadId),
+            runRoot: readOptionalString(body.runRoot),
+            taskCardPath: readOptionalString(body.taskCardPath),
+            configPath: readOptionalString(body.configPath),
+            noLocal: body.noLocal === true,
+          }, { timeoutMs: 120_000 });
+          return jsonBridgeResponse(200, { success: true, data: result });
+        }
+
+        if (action === 'inspect' || action === 'view') {
+          const threadId = readOptionalString(body.threadId);
+          if (!threadId) {
+            return jsonBridgeResponse(400, { success: false, error: 'Missing required field: threadId' });
+          }
+          const cliRequest = {
+            threadId,
+            runRoot: readOptionalString(body.runRoot),
+          };
+          const result = action === 'inspect'
+            ? await studioCore.harnessCli.inspectRun(project.path, cliRequest)
+            : await studioCore.harnessCli.viewRun(project.path, cliRequest);
+          return jsonBridgeResponse(200, { success: true, data: result });
+        }
+      }
+
+      return null;
     }
 
     // /api/projects/:id/(agents|skills|workflows|claudemd)

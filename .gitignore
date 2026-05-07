@@ -54,3 +54,9 @@ next-env.d.ts
 
 # studio-core package
 /packages/studio-core/node_modules/
+
+# harness CLI workspace packages
+/packages/core/node_modules/
+/packages/core/dist/
+/packages/cli/node_modules/
+/packages/cli/dist/

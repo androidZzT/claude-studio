@@ -16,7 +16,7 @@ export interface StudioSettings {
   readonly animationSpeed: 'fast' | 'normal' | 'slow';
 }
 
-const STORAGE_KEY = 'claude-studio-settings';
+const STORAGE_KEY = 'harness-studio-settings';
 
 const DEFAULT_SETTINGS: StudioSettings = {
   language: 'en',

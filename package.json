@@ -1,8 +1,12 @@
 {
   "name": "harness-studio",
   "version": "1.2.8",
-  "description": "Visual orchestration platform for Claude Code — manage agents, workflows, skills & rules in ~/.claude/",
+  "description": "Cross-platform harness environment manager for Claude Code, Codex, Cursor, and multi-agent workflows.",
   "keywords": [
+    "harness",
+    "harness-environment",
+    "codex",
+    "cursor",
     "claude-code",
     "claude",
     "agent-orchestration",
@@ -19,6 +23,9 @@
     "url": "https://github.com/androidZzT/harness-studio.git"
   },
   "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
   "bin": {
     "harness-studio": "./bin/cli.mjs"
   },
@@ -46,6 +53,12 @@
     "start": "next start",
     "lint": "eslint",
     "core:build": "npm --prefix packages/studio-core run build",
+    "harness:build": "tsc -b tsconfig.harness.json && node scripts/harness-cli/copy-templates.mjs && node scripts/harness-cli/make-cli-executable.mjs",
+    "harness:typecheck": "tsc -p tsconfig.harness.typecheck.json --noEmit",
+    "harness:test": "vitest run -c vitest.harness.config.ts",
+    "harness:cli": "npm run harness:build && node packages/cli/dist/cli.js",
+    "monorepo:build": "npm run harness:build && npm run core:build && npm run build",
+    "verify:visual-workflow": "npm run core:build && node scripts/verify-visual-workflow.mjs",
     "vscode:build": "npm run build && npm run core:build && npm --prefix extensions/vscode run build",
     "vscode:watch": "npm --prefix extensions/vscode run watch"
   },
@@ -64,14 +77,16 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20",
+    "@types/node": "^22.15.30",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "playwright": "^1.59.1",
     "puppeteer-core": "^24.40.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

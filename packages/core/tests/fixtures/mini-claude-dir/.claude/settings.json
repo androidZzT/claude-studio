@@ -1,0 +1,52 @@
+{
+  "env": {
+    "FLAG": "1"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/check.sh",
+            "timeout": 10,
+            "statusMessage": "checking"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo edit",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {
+    "alpha": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@example/server-alpha"
+      ],
+      "env": {
+        "TOKEN": "${TOKEN}"
+      }
+    }
+  },
+  "marketplaces": {
+    "mini-market": {
+      "source": "github:example/mini-market"
+    }
+  },
+  "enabledPlugins": {
+    "mini-plugin@mini-market": true
+  }
+}

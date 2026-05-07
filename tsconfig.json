@@ -34,6 +34,8 @@
   "exclude": [
     "node_modules",
     "extensions/**/*",
+    "packages/core/**/*",
+    "packages/cli/**/*",
     "dist/**/*"
   ]
 }

@@ -359,11 +359,11 @@ function WorkflowCanvasInner({
       );
       setDirty(true);
     }
-    window.addEventListener('claude-studio:bind-skill', handleBindSkill);
-    window.addEventListener('claude-studio:bind-mcp', handleBindMcp);
+    window.addEventListener('harness-studio:bind-skill', handleBindSkill);
+    window.addEventListener('harness-studio:bind-mcp', handleBindMcp);
     return () => {
-      window.removeEventListener('claude-studio:bind-skill', handleBindSkill);
-      window.removeEventListener('claude-studio:bind-mcp', handleBindMcp);
+      window.removeEventListener('harness-studio:bind-skill', handleBindSkill);
+      window.removeEventListener('harness-studio:bind-mcp', handleBindMcp);
     };
   }, [setNodes]);
 

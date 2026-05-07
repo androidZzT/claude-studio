@@ -1,0 +1,5 @@
+name: exact-version
+env:
+  required:
+    - cmd: node
+      min: "20.0.0"

@@ -5,7 +5,9 @@ const file_ops_1 = require("./file-ops");
 const project_scanner_1 = require("./project-scanner");
 const project_creation_1 = require("./project-creation");
 const execution_engine_1 = require("./execution-engine");
+const harness_cli_1 = require("./harness-cli");
 const workflow_validation_1 = require("./workflow-validation");
+const visual_workflow_1 = require("./visual-workflow");
 function createStudioCore() {
     return {
         resources: {
@@ -38,6 +40,18 @@ function createStudioCore() {
             startExecution: execution_engine_1.startExecution,
             getExecution: execution_engine_1.getExecution,
             removeExecution: execution_engine_1.removeExecution,
+        },
+        harnessCli: {
+            checkAvailability: harness_cli_1.checkHarnessCliAvailability,
+            dryRunWorkflow: harness_cli_1.dryRunHarnessWorkflow,
+            inspectRun: harness_cli_1.inspectHarnessRun,
+            viewRun: harness_cli_1.viewHarnessRun,
+        },
+        visualization: {
+            readVisualWorkflowRuns: visual_workflow_1.readVisualWorkflowRuns,
+            readVisualWorkflowRun: visual_workflow_1.readVisualWorkflowRun,
+            readVisualRunArtifact: visual_workflow_1.readVisualRunArtifact,
+            readVisualRunTrace: visual_workflow_1.readVisualRunTrace,
         },
     };
 }
