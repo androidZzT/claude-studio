@@ -25,7 +25,8 @@ export function McpServersTab({ servers, onChange }: McpServersTabProps) {
   }, [newServerName, servers, onChange]);
 
   const handleRemoveServer = useCallback((name: string) => {
-    const { [name]: _, ...rest } = servers;
+    const rest = { ...servers };
+    delete rest[name];
     onChange(rest);
     if (expandedServer === name) setExpandedServer(null);
   }, [servers, onChange, expandedServer]);
@@ -107,7 +108,8 @@ function McpServerItem({ name, config, expanded, onToggle, onUpdate, onRemove }:
   }, [config, onUpdate]);
 
   const handleEnvRemove = useCallback((key: string) => {
-    const { [key]: _, ...rest } = config.env;
+    const rest = { ...config.env };
+    delete rest[key];
     onUpdate({ ...config, env: rest });
   }, [config, onUpdate]);
 
