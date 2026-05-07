@@ -1,3 +1,5 @@
+import type { NamedResource } from "../named-resources.js";
+
 export interface CommandIo {
   stdout(message: string): void;
   stderr(message: string): void;
@@ -26,6 +28,8 @@ export interface KmPageAnalysisArgs {
   readonly machproRepo?: string;
   readonly page?: string;
   readonly runId?: string;
+  readonly sources: readonly NamedResource[];
+  readonly targets: readonly NamedResource[];
 }
 
 export interface PageAnalysisPaths {

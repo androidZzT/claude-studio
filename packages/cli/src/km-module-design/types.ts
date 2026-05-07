@@ -1,3 +1,5 @@
+import type { NamedResource } from "../named-resources.js";
+
 export interface CommandIo {
   stdout(message: string): void;
   stderr(message: string): void;
@@ -28,6 +30,8 @@ export interface KmModuleDesignArgs {
   readonly module?: string;
   readonly runId?: string;
   readonly runIntegrator: boolean;
+  readonly sources: readonly NamedResource[];
+  readonly targets: readonly NamedResource[];
 }
 
 export interface WorkflowPaths {

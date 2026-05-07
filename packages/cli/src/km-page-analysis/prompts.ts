@@ -1,3 +1,8 @@
+import {
+  renderResourcesForPrompt,
+  resolveWorkflowSources,
+  resolveWorkflowTargets,
+} from "../named-resources.js";
 import { requireBusinessPage } from "./args.js";
 import { relativeTo } from "./paths.js";
 import type { KmPageAnalysisArgs, PageAnalysisPaths } from "./types.js";
@@ -7,10 +12,12 @@ export function buildPrompt(
   paths: PageAnalysisPaths,
 ): string {
   const required = requireBusinessPage(args);
+  const sources = resolveWorkflowSources(args);
+  const targets = resolveWorkflowTargets(args);
   const knownModules =
     args.knownModules.length > 0
       ? args.knownModules.map((module) => `- ${module}`).join("\n")
-      : "- 未提供；请从 machpro 证据和已有 spec-package 中识别。";
+      : "- 未提供；请从 sources 证据和已有 spec-package 中识别。";
 
   return `# harness km-page-analysis 工作流
 
@@ -21,10 +28,10 @@ export function buildPrompt(
 - page_id: \`${required.page}\`
 - harness repo: \`${paths.harnessRepo}\`
 - output dir: \`${relativeTo(paths.harnessRepo, paths.outputDir)}\`
-- machpro repo: \`${args.machproRepo ?? "未提供"}\`
-- machpro path: \`${args.machproPath ?? "未提供"}\`
-- Android repo: \`${args.androidRepo ?? "未提供"}\`
-- iOS repo: \`${args.iosRepo ?? "未提供"}\`
+- sources:
+${renderResourcesForPrompt(sources, "未提供")}
+- targets:
+${renderResourcesForPrompt(targets, "未提供")}
 - run dir: \`${relativeTo(paths.harnessRepo, paths.runDir)}\`
 
 已知模块：
@@ -36,7 +43,7 @@ ${knownModules}
 - 必要时读取 \`skills/molecule/km-module-design/SKILL.md\`，但不要生成模块级 spec-pack。
 
 Agent 角色：
-- 本步骤由 architect 负责。你可以读取 machpro、Android、iOS 和现有 spec-package 作为证据，但不要修改 Android/iOS 生产代码。
+- 本步骤由 architect 负责。你可以读取 named sources、named targets 和现有 spec-package 作为证据，但不要修改 target 工程生产代码。
 
 写入范围：
 - \`${relativeTo(paths.harnessRepo, paths.pageAnalysisPath)}\`
@@ -50,7 +57,7 @@ Agent 角色：
 3. 每条 blocking dependency 必须有 kind、reason 和 owner_contract_hint。
 4. batches 必须自底向上且拓扑无环；后续批次不得依赖未来批次产物。
 5. 至少输出一个底层批次和一个页面整合批次；如果页面实质只有单模块，明确写出应改用 \`km-module-design\`。
-6. 不要生成 \`spec-pack/\`，不要写 Android/iOS 代码。
+6. 不要生成 \`spec-pack/\`，不要写 target 工程代码。
 
 状态输出：
 - 完成后写 \`${relativeTo(paths.harnessRepo, paths.statusDir)}/architect.md\`。

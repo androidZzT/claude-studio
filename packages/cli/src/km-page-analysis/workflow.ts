@@ -3,6 +3,13 @@ import path from "node:path";
 
 import { HarnessError } from "@harness/core";
 
+import {
+  renderLegacyMachproYaml,
+  renderNamedResourcesYaml,
+  resolveWorkflowSources,
+  resolveWorkflowTargets,
+  type NamedResource,
+} from "../named-resources.js";
 import { requireBusinessPage } from "./args.js";
 import {
   buildPaths,
@@ -100,17 +107,24 @@ async function workflowText(
   paths: PageAnalysisPaths,
 ): Promise<string> {
   const required = requireBusinessPage(args);
-  const commit = await gitCommit(args.machproRepo, paths.harnessRepo);
+  const sources = resolveWorkflowSources(args);
+  const targets = resolveWorkflowTargets(args);
+  const sourceCommits = await resolveSourceCommits(sources, paths.harnessRepo);
+  const machproSource = sources.find((source) => source.id === "machpro");
   return `workflow_id: km-page-analysis
 business_id: ${required.business}
 page_id: ${required.page}
 run_dir: ${relativeTo(paths.harnessRepo, paths.runDir)}
 output_dir: ${relativeTo(paths.harnessRepo, paths.outputDir)}
-machpro:
-  source_repo: ${args.machproRepo ?? "unresolved"}
-  source_path: ${args.machproPath ?? "unresolved"}
-  commit: ${commit}
-agent:
+sources:
+${renderNamedResourcesYaml(sources, 2, {
+  commits: sourceCommits,
+  includeCommit: true,
+  includeUnresolvedSubpath: true,
+})}
+targets:
+${renderNamedResourcesYaml(targets, 2)}
+${renderLegacyMachproYaml(machproSource, sourceCommits.get("machpro"))}agent:
   name: ${PAGE_ANALYSIS_AGENT}
   prompt: ${relativeTo(paths.harnessRepo, path.join(paths.promptDir, `${PAGE_ANALYSIS_AGENT}.md`))}
 outputs:
@@ -136,4 +150,17 @@ async function gitCommit(
     process.cwd(),
   );
   return result.exitCode === 0 ? result.stdout.trim() : "unresolved";
+}
+
+async function resolveSourceCommits(
+  sources: readonly NamedResource[],
+  harnessRepo: string,
+): Promise<ReadonlyMap<string, string>> {
+  const pairs = await Promise.all(
+    sources.map(async (source) => [
+      source.id,
+      await gitCommit(source.path, harnessRepo),
+    ] as const),
+  );
+  return new Map(pairs);
 }

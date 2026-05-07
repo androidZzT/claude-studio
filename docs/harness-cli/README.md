@@ -177,11 +177,26 @@ harness km-module-design prepare \
   --harness-repo ~/Workspace/sailor-harness \
   --business shop \
   --module productlist \
-  --machpro-repo ../sailor_fe_c_transaction_dynamic \
-  --machpro-path src/pages/shop/c_shop_global \
-  --android-repo ../sailor_fe_c_transaction_android \
-  --ios-repo ../sailor_fe_c_transaction_ios
+  --source machpro=../sailor_fe_c_transaction_dynamic \
+  --source-path machpro=src/pages/shop/c_shop_global \
+  --target android=../sailor_fe_c_transaction_android \
+  --target ios=../sailor_fe_c_transaction_ios
 ```
+
+`source` / `target` 都是 `id=path` 形式；`id` 本身就是平台或工程角色标识，所以同一套机制也可以表达别的迁移目标：
+
+```bash
+harness km-module-design prepare \
+  --harness-repo ~/Workspace/acme-harness \
+  --business commerce \
+  --module checkout \
+  --source monolith=../python-monolith \
+  --source-path monolith=app/checkout \
+  --target frontend=../checkout-web \
+  --target backend=../checkout-api
+```
+
+历史参数 `--machpro-repo` / `--machpro-path` / `--android-repo` / `--ios-repo` 仍可用，但会被当成上述新参数的兼容别名。
 
 每一步都可以单独执行：
 

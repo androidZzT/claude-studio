@@ -1,3 +1,8 @@
+import {
+  renderResourcesForPrompt,
+  resolveWorkflowSources,
+  resolveWorkflowTargets,
+} from "../named-resources.js";
 import { requireBusinessModule } from "./args.js";
 import { relativeTo } from "./paths.js";
 import type {
@@ -8,9 +13,11 @@ import type {
 
 function promptCommon(args: KmModuleDesignArgs, paths: WorkflowPaths): string {
   const required = requireBusinessModule(args);
+  const sources = resolveWorkflowSources(args);
+  const targets = resolveWorkflowTargets(args);
   return `# harness km-module-design 工作流
 
-你正在参与由 \`harness km-module-design\` 生成的 Machpro Spec Pack。
+你正在参与由 \`harness km-module-design\` 生成的模块 Spec Pack。
 
 输入：
 - business_id: \`${required.business}\`
@@ -18,14 +25,14 @@ function promptCommon(args: KmModuleDesignArgs, paths: WorkflowPaths): string {
 - harness repo: \`${paths.harnessRepo}\`
 - spec-pack dir: \`${relativeTo(paths.harnessRepo, paths.specPackDir)}\`
 - reviewed reference dir: \`${relativeTo(paths.harnessRepo, `${paths.specPackDir}/../references`)}\`
-- machpro repo: \`${args.machproRepo ?? "unresolved"}\`
-- machpro path: \`${args.machproPath ?? "unresolved"}\`
-- Android repo: \`${args.androidRepo ?? "unresolved"}\`
-- iOS repo: \`${args.iosRepo ?? "unresolved"}\`
+- sources:
+${renderResourcesForPrompt(sources, "未提供")}
+- targets:
+${renderResourcesForPrompt(targets, "未提供")}
 - run dir: \`${relativeTo(paths.harnessRepo, paths.runDir)}\`
 
 通用规则：
-- 不要修改 Android 或 iOS 生产代码。
+- 不要修改 target 工程生产代码。
 - 并行 contributor 阶段保持 \`manifest.status=draft\`。
 - 只能写入自己声明的 write scope。
 - 所有强结论都必须有 path-line evidence，或明确写出 blocker。
@@ -60,8 +67,8 @@ export function buildPrompt(
 - \`platform_generation_rules.md\`
 
 职责：
-1. 读取 machpro evidence、可选的模块 reviewed reference design，以及目标 Android/iOS 当前代码现状。
-2. 完成 Reviewed Reference Design Gate、Machpro Evidence Gate、Reuse Discovery Gate、Architecture Kernel Gate。
+1. 读取 named sources evidence、可选的模块 reviewed reference design，以及所有 named targets 当前代码现状。
+2. 完成 Reviewed Reference Design Gate、Source Evidence Gate、Reuse Discovery Gate、Architecture Kernel Gate。
 3. 填写 Architecture Invariants、State Ownership Matrix、Mutation Authority Matrix、Stress Scenario Matrix、Plan Handoff Trace。
 4. 将 T0-T8 和 C0-C12 写入 \`architecture_design.md\`，正文使用中文。
 5. 让 \`manifest.yaml\` 保持 draft；并行阶段不要把 contributors 标成 done。
@@ -83,7 +90,7 @@ export function buildPrompt(
     return `${common}
 # 贡献者：machpro-parity
 
-使用 \`agents/machpro-parity.md\`、\`machpro-evidence-extract\` 和 \`evidence-chain-verify\`。
+使用 \`agents/machpro-parity.md\`、\`machpro-evidence-extract\` 和 \`evidence-chain-verify\`。当前 agent id 沿用 machpro-parity 以兼容历史 spec-pack，但职责是抽取 source 工程事实。
 
 写入范围：
 - \`machpro_inventory.md\`
@@ -92,9 +99,9 @@ export function buildPrompt(
 - \`analytics_contract.yaml\`
 
 职责：
-1. 抽取 machpro route/page/component/store/service/API/style/asset/i18n/storage/analytics/permission/loading/empty/error 事实。
+1. 优先读取 \`id=machpro\` 的 source；如果没有该 source，则读取所有 named sources，并抽取 route/page/component/store/service/API/style/asset/i18n/storage/analytics/permission/loading/empty/error 事实。
 2. 每条事实都必须给出 path-line evidence。
-3. 将可观察 machpro 元素映射到 \`NAV-* / ACT-* / STATE-* / UI-* / API-* / MODEL-* / RULE-* / TRACK-* / STORAGE-* / ERROR-* / TEST-*\`。
+3. 将可观察 source 元素映射到 \`NAV-* / ACT-* / STATE-* / UI-* / API-* / MODEL-* / RULE-* / TRACK-* / STORAGE-* / ERROR-* / TEST-*\`。
 4. status 枚举只能使用 \`covered / intentionally_removed / deferred / unknown\`。
 5. 不要猜；证据不足时保留 \`unknown\`。
 6. \`machpro_inventory.md\` 和 \`functional_contract.md\` 的标题、说明、表格列名和行为描述都使用中文。
@@ -128,7 +135,7 @@ export function buildPrompt(
 6. \`acceptance_tests.md\` 的标题、说明、前置条件、操作、期望和断言描述都使用中文；字段名、case id 和 contract id 保持原样。
 
 不要写入：
-- 本 contributor 阶段不要写 Android/iOS 测试代码。
+- 本 contributor 阶段不要写 target 工程测试或生产代码。
 - 不要写 \`architecture_design.md\` 的 owner 决策。
 - \`manifest.status=ready-for-plan\`
 

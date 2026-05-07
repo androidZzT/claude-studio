@@ -225,4 +225,73 @@ describe("harness km-module-design", () => {
       ),
     ).toBe(true);
   });
+
+  it("renders named sources and targets in generated artifacts", async () => {
+    const repo = await createHarnessRepo();
+    const { io, stderr } = createIo();
+
+    const exitCode = await runCli(
+      [
+        "km-module-design",
+        "prepare",
+        "--harness-repo",
+        repo,
+        "--business",
+        "commerce",
+        "--module",
+        "checkout",
+        "--run-id",
+        "named-resources",
+        "--source",
+        "monolith=../python-monolith",
+        "--source-path",
+        "monolith=app/checkout",
+        "--source-platform",
+        "monolith=python",
+        "--target",
+        "frontend=../checkout-web",
+        "--target",
+        "backend=../checkout-api",
+        "--target-platform",
+        "backend=python-api",
+      ],
+      io,
+    );
+
+    expect(exitCode).toBe(0);
+    expect(stderr).toEqual([]);
+
+    const runDir = path.join(
+      repo,
+      ".harness/runs/km-module-design/commerce-checkout-named-resources",
+    );
+    const specPackDir = path.join(
+      repo,
+      "spec-package/commerce/checkout/spec-pack",
+    );
+    const architectPrompt = await readFile(
+      path.join(runDir, "prompts/architect.md"),
+      "utf8",
+    );
+    const manifest = await readFile(
+      path.join(specPackDir, "manifest.yaml"),
+      "utf8",
+    );
+    const workflow = await readFile(path.join(runDir, "workflow.yaml"), "utf8");
+
+    expect(architectPrompt).toContain(
+      "- monolith: path=../python-monolith, subpath=app/checkout, platform=python",
+    );
+    expect(architectPrompt).toContain(
+      "- frontend: path=../checkout-web, subpath=未提供, platform=frontend",
+    );
+    expect(architectPrompt).toContain(
+      "- backend: path=../checkout-api, subpath=未提供, platform=python-api",
+    );
+    expect(manifest).toContain("sources:\n  monolith:");
+    expect(manifest).toContain("targets:\n  frontend:");
+    expect(manifest).not.toContain("\nmachpro:\n");
+    expect(workflow).toContain("sources:\n  monolith:");
+    expect(workflow).toContain("targets:\n  frontend:");
+  });
 });

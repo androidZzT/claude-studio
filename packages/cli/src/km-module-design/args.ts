@@ -1,7 +1,18 @@
 import { HarnessError } from "@harness/core";
 import { z } from "zod";
 
+import {
+  parseNamedAssignment,
+  upsertNamedResource,
+} from "../named-resources.js";
 import type { KmModuleDesignArgs, KmModuleDesignCommand } from "./types.js";
+
+const namedResourceSchema = z.object({
+  id: z.string().min(1),
+  path: z.string().min(1).optional(),
+  platform: z.string().min(1).optional(),
+  subpath: z.string().min(1).optional(),
+});
 
 const kmModuleDesignArgsSchema = z.object({
   agentCommandTemplate: z.string().min(1).optional(),
@@ -27,6 +38,8 @@ const kmModuleDesignArgsSchema = z.object({
   module: z.string().min(1).optional(),
   runId: z.string().min(1).optional(),
   runIntegrator: z.boolean(),
+  sources: z.array(namedResourceSchema),
+  targets: z.array(namedResourceSchema),
 });
 
 export function parseKmModuleDesignArgs(argv: readonly string[]): KmModuleDesignArgs {
@@ -160,6 +173,71 @@ function parseValueFlag(
     return { args: { ...args, runId: value() }, nextIndex: index + 1 };
   }
 
+  if (token === "--source") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          path: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--source-path") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          subpath: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--source-platform") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          platform: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--target") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        targets: upsertNamedResource(args.targets, assignment.id, {
+          path: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--target-platform") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        targets: upsertNamedResource(args.targets, assignment.id, {
+          platform: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
   return undefined;
 }
 
@@ -186,6 +264,8 @@ function createDefaultArgs(command: KmModuleDesignCommand): KmModuleDesignArgs {
     includeSpecPack: false,
     json: false,
     runIntegrator: false,
+    sources: [],
+    targets: [],
   };
 }
 

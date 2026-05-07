@@ -1,7 +1,18 @@
 import { HarnessError } from "@harness/core";
 import { z } from "zod";
 
+import {
+  parseNamedAssignment,
+  upsertNamedResource,
+} from "../named-resources.js";
 import type { KmPageAnalysisArgs, KmPageAnalysisCommand } from "./types.js";
+
+const namedResourceSchema = z.object({
+  id: z.string().min(1),
+  path: z.string().min(1).optional(),
+  platform: z.string().min(1).optional(),
+  subpath: z.string().min(1).optional(),
+});
 
 const kmPageAnalysisArgsSchema = z.object({
   agentCommandTemplate: z.string().min(1).optional(),
@@ -18,6 +29,8 @@ const kmPageAnalysisArgsSchema = z.object({
   machproRepo: z.string().min(1).optional(),
   page: z.string().min(1).optional(),
   runId: z.string().min(1).optional(),
+  sources: z.array(namedResourceSchema),
+  targets: z.array(namedResourceSchema),
 });
 
 export function parseKmPageAnalysisArgs(
@@ -169,6 +182,71 @@ function parseValueFlag(
     return { args: { ...args, runId: value() }, nextIndex: index + 1 };
   }
 
+  if (token === "--source") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          path: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--source-path") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          subpath: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--source-platform") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        sources: upsertNamedResource(args.sources, assignment.id, {
+          platform: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--target") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        targets: upsertNamedResource(args.targets, assignment.id, {
+          path: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
+  if (token === "--target-platform") {
+    const assignment = parseNamedAssignment(value(), token);
+    return {
+      args: {
+        ...args,
+        targets: upsertNamedResource(args.targets, assignment.id, {
+          platform: assignment.value,
+        }),
+      },
+      nextIndex: index + 1,
+    };
+  }
+
   return undefined;
 }
 
@@ -195,6 +273,8 @@ function createDefaultArgs(command: KmPageAnalysisCommand): KmPageAnalysisArgs {
     includeOutput: false,
     json: false,
     knownModules: [],
+    sources: [],
+    targets: [],
   };
 }
 

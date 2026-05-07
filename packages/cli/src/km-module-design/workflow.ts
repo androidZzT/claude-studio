@@ -3,6 +3,13 @@ import path from "node:path";
 
 import { HarnessError } from "@harness/core";
 
+import {
+  renderLegacyMachproYaml,
+  renderNamedResourcesYaml,
+  resolveWorkflowSources,
+  resolveWorkflowTargets,
+  type NamedResource,
+} from "../named-resources.js";
 import { requireBusinessModule } from "./args.js";
 import {
   buildPaths,
@@ -94,7 +101,10 @@ async function manifestText(
   paths: WorkflowPaths,
 ): Promise<string> {
   const required = requireBusinessModule(args);
-  const commit = await gitCommit(args.machproRepo, paths.harnessRepo);
+  const sources = resolveWorkflowSources(args);
+  const targets = resolveWorkflowTargets(args);
+  const sourceCommits = await resolveSourceCommits(sources, paths.harnessRepo);
+  const machproSource = sources.find((source) => source.id === "machpro");
   const architecturePath = relativeTo(
     paths.harnessRepo,
     path.join(paths.specPackDir, "architecture_design.md"),
@@ -107,12 +117,16 @@ status: draft
 owner: architect
 updated_at: ${new Date().toISOString().slice(0, 10)}
 
-machpro:
-  source_repo: ${args.machproRepo ?? "unresolved"}
-  source_path: ${args.machproPath ?? "unresolved"}
-  commit: ${commit}
+sources:
+${renderNamedResourcesYaml(sources, 2, {
+  commits: sourceCommits,
+  includeCommit: true,
+  includeUnresolvedSubpath: true,
+})}
 
-design:
+targets:
+${renderNamedResourcesYaml(targets, 2)}
+${renderLegacyMachproYaml(machproSource, sourceCommits.get("machpro"))}design:
   architecture_design_path: ${architecturePath}
   design_status: draft
 
@@ -133,10 +147,6 @@ ${yamlList(["machpro_inventory", "traceability", "functional_and_analytics_facts
     responsibilities:
 ${yamlList(["acceptance_tests", "p0_p1_p2_coverage"])}
 
-targets:
-  android: ${args.androidRepo ?? "unresolved"}
-  ios: ${args.iosRepo ?? "unresolved"}
-
 workflow:
   runner: harness km-module-design
   run_dir: ${relativeTo(paths.harnessRepo, paths.runDir)}
@@ -149,11 +159,17 @@ workflow:
 
 function workflowText(args: KmModuleDesignArgs, paths: WorkflowPaths): string {
   const required = requireBusinessModule(args);
+  const sources = resolveWorkflowSources(args);
+  const targets = resolveWorkflowTargets(args);
   return `workflow_id: km-module-design
 business_id: ${required.business}
 module_id: ${required.module}
 run_dir: ${relativeTo(paths.harnessRepo, paths.runDir)}
 spec_pack_dir: ${relativeTo(paths.harnessRepo, paths.specPackDir)}
+sources:
+${renderNamedResourcesYaml(sources, 2)}
+targets:
+${renderNamedResourcesYaml(targets, 2)}
 parallel_phase:
   - agent: architect
     prompt: ${relativeTo(paths.harnessRepo, path.join(paths.promptDir, "architect.md"))}
@@ -184,6 +200,19 @@ async function gitCommit(
     process.cwd(),
   );
   return result.exitCode === 0 ? result.stdout.trim() : "unresolved";
+}
+
+async function resolveSourceCommits(
+  sources: readonly NamedResource[],
+  harnessRepo: string,
+): Promise<ReadonlyMap<string, string>> {
+  const pairs = await Promise.all(
+    sources.map(async (source) => [
+      source.id,
+      await gitCommit(source.path, harnessRepo),
+    ] as const),
+  );
+  return new Map(pairs);
 }
 
 function yamlList(values: readonly string[], indent = 6): string {
