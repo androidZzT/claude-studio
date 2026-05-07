@@ -46,6 +46,14 @@ next-env.d.ts
 # local editor settings
 /.vscode/
 
+# local agent environment files
+/.claude/
+/.codex/*
+!/.codex/
+!/.codex/*.template
+/AGENTS.md
+/CLAUDE.md
+
 # vscode extension
 /extensions/vscode/node_modules/
 /extensions/vscode/dist/
